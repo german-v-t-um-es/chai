@@ -247,6 +247,10 @@ int main(int argc, char **argv) {
     free(task_pool_backup);
     hipDeviceSynchronize();
 
+    #ifdef _CUDA_COMPILER_
+    printf("CUDA COMPILER ON\n");
+    #endif
+
     printf("Test Passed\n");
     return 0;
 }
