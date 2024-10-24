@@ -249,6 +249,8 @@ int main(int argc, char **argv) {
 
     #ifdef _CUDA_COMPILER_
     printf("CUDA COMPILER ON\n");
+    #else
+    printf("NO CUDA COMPILER\n");
     #endif
 
     printf("Test Passed\n");
