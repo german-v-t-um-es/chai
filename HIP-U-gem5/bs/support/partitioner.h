@@ -52,10 +52,8 @@ typedef struct Partitioner {
     int cut;
     int current;
 
-// #ifndef _CUDA_COMPILER_
-//     int thread_id;
-//     int n_threads;
-// #endif
+    int thread_id;
+    int n_threads;
 
     // Support for dynamic partitioning
     int strategy;
@@ -115,4 +113,6 @@ inline int cpu_next(Partitioner *p) {
     }
     return p->current;
 }
+
+#endif
 
