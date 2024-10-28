@@ -134,6 +134,7 @@ __global__ void StreamCompaction_kernel(int size, T value, int n_tasks, float al
 
         // Set global synch
         if(threadIdx.x == 0) {
+            int p_count;
             while((p_count = atomicAdd(&flags[my_s], 0)) == 0) {} //atomicAdd_system(&flags[my_s], 0))
             atomicAdd(&flags[my_s + 1], p_count + l_count[0]); //atomicAdd_system(&flags[my_s + 1], p_count + l_count[0]);
             l_count[0] = p_count - 1;
