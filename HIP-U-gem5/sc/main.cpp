@@ -61,8 +61,8 @@ struct Params {
         n_gpu_threads     = 256;
         n_gpu_blocks      = 8;
         n_threads         = 4;
-				n_warmup          = 0;
-				n_reps            = 1;
+        n_warmup          = 0;
+        n_reps            = 1;
         alpha             = 0.1;
         in_size           = 1048;
         compaction_factor = 50;
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
 
         hipDeviceSynchronize();
         main_thread.join();
-
+        fprintf(stderr, "Iteration %d finished\n", rep);
     }
 
     // Verify answer
