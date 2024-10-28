@@ -52,9 +52,6 @@ typedef struct Partitioner {
     int cut;
     int current;
 
-    int thread_id;
-    int n_threads;
-
     // Support for dynamic partitioning
     int strategy;
     std::atomic_int *worklist;
@@ -67,11 +64,9 @@ typedef struct Partitioner {
 
 // Create a partitioner -------------------------------------------------------
 
-inline Partitioner partitioner_create(int n_tasks, float alpha, int thread_id, int n_threads, std::atomic_int *worklist) {
+inline Partitioner partitioner_create(int n_tasks, float alpha, std::atomic_int *worklist) {
     Partitioner p;
     p.n_tasks = n_tasks;
-    p.thread_id = thread_id;
-    p.n_threads = n_threads;
     if(alpha >= 0.0 && alpha <= 1.0) {
         p.cut = p.n_tasks * alpha;
         p.strategy = STATIC_PARTITIONING;
