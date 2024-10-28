@@ -88,5 +88,6 @@ void run_cpu_threads(T *output, T *input, std::atomic_int *flags, int size, int 
             }
         }));
     }
+    fprintf(stderr, "Exiting CPU computation executing join for each thread\n");
     std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { t.join(); });
 }

@@ -201,6 +201,7 @@ int main(int argc, char **argv) {
             p.n_gpu_threads, n_tasks, p.alpha,worklist);
 
         hipDeviceSynchronize();
+        fprintf(stderr, "HIP device Synchronize done\n");
         main_thread.join();
         fprintf(stderr, "Iteration %d finished\n", rep);
     }
