@@ -68,6 +68,9 @@ typedef struct Partitioner {
 
 // Create a partitioner -------------------------------------------------------
 
+#ifdef GPU_COMPILE
+__device__
+#endif
 inline Partitioner partitioner_create(
     int n_tasks, float alpha,                               // Basic paramaters
 #ifndef GPU_COMPILE 
