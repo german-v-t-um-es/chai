@@ -68,21 +68,13 @@ T BezierBlend(int k, T mu, int n) {
 
 // CPU threads-----------------------------------------------------------------
 void run_cpu_threads(XYZ *in, XYZ *outp, int n_tasks, float alpha, int n_threads, int n_gpu_threads, int in_size_i, int in_size_j,
-    int out_size_i, int out_size_j
-#ifdef CUDA_8_0
-    , std::atomic_int *worklist
-#endif
-    ) {
+    int out_size_i, int out_size_j, std::atomic_int *worklist) {
 
     std::vector<std::thread> cpu_threads;
     for(int k = 0; k < n_threads; k++) {
         cpu_threads.push_back(std::thread([=]() {
 
-#ifdef CUDA_8_0
             Partitioner p = partitioner_create(n_tasks, alpha, k, n_threads, worklist);
-#else
-            Partitioner p = partitioner_create(n_tasks, alpha, k, n_threads);
-#endif
 
             const int wg_in_J = divceil(out_size_j, n_gpu_threads);
             const int wg_in_I = divceil(out_size_i, n_gpu_threads);

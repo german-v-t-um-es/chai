@@ -34,8 +34,6 @@
  *
  */
 
-#define _CUDA_COMPILER_
-
 #include "support/common.h"
 #include "support/partitioner.h"
 
@@ -67,21 +65,13 @@ __device__ T BezierBlendGPU(int k, T mu, int n) {
 
 // HIP kernel --------------------------------------------------------------
 __global__ void Bezier_surface(int n_tasks, float alpha, int in_size_i, int in_size_j, int out_size_i,
-    int out_size_j, XYZ *in, XYZ *outp
-#ifdef CUDA_8_0
-    , int *worklist
-#endif
-    ) {
+    int out_size_j, XYZ *in, XYZ *outp, int *worklist) {
       
-    HIP_DYNAMIC_SHARED( XYZ, l_mem)
+    HIP_DYNAMIC_SHARED(XYZ, l_mem) //declares a shared array of XYZ, shared in the block
     XYZ* l_in = l_mem;
     int* l_tmp = (int*)&l_in[(in_size_i+1)*(in_size_j+1)];
 
-#ifdef CUDA_8_0
     Partitioner p = partitioner_create(n_tasks, alpha, worklist, l_tmp);
-#else
-    Partitioner p = partitioner_create(n_tasks, alpha);
-#endif
 
     const int wg_in_J = divceil(out_size_j, blockDim.x);
     const int wg_in_I = divceil(out_size_i, blockDim.y);
@@ -124,19 +114,13 @@ __global__ void Bezier_surface(int n_tasks, float alpha, int in_size_i, int in_s
 
 hipError_t call_Bezier_surface(int blocks, int threads, int n_tasks, float alpha,
     int in_size_i, int in_size_j, int out_size_i, int out_size_j,
-    int l_mem_size, XYZ* d_in, XYZ* d_out
-#ifdef CUDA_8_0
-    , int* worklist
-#endif
-    ){
+    int l_mem_size, XYZ* d_in, XYZ* d_out, int* worklist){
+
     dim3 dimGrid(blocks, 1);
     dim3 dimBlock(threads, threads);
     hipLaunchKernelGGL(Bezier_surface, dim3(dimGrid), dim3(dimBlock), l_mem_size, 0, n_tasks, alpha, in_size_i, in_size_j, out_size_i, out_size_j,
-        d_in, d_out
-#ifdef CUDA_8_0
-        , worklist
-#endif
-        );
+    d_in, d_out, worklist);
     hipError_t err = hipGetLastError();
     return err;
+
 }

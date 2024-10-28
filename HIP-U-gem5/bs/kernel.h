@@ -38,16 +38,8 @@
 #include "support/common.h"
 
 void run_cpu_threads(XYZ *in, XYZ *out, int n_tasks, float alpha, int n_threads, int n_work_items, int in_size_i, int in_size_j,
-    int out_size_i, int out_size_j
-#ifdef CUDA_8_0
-    , std::atomic_int *worklist
-#endif
-    );
+    int out_size_i, int out_size_j, std::atomic_int *worklist);
 
 hipError_t call_Bezier_surface(int blocks, int threads, int n_tasks, float alpha,
     int in_size_i, int in_size_j, int out_size_i, int out_size_j, 
-    int l_mem_size, XYZ* d_in, XYZ* d_out
-#ifdef CUDA_8_0
-    , int* worklist
-#endif
-    );
+    int l_mem_size, XYZ* d_in, XYZ* d_out, int* worklist);

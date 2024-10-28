@@ -63,6 +63,7 @@ struct Params {
         n_gpu_blocks  = 32;
         n_threads     = 4;
         n_warmup      = 0;
+        // Probar con dos reps
         n_reps        = 1;
         alpha         = 0.1;
         file_name     = "gem5-resources/src/gpu/chai/HIP-U-gem5/bs/input/control.txt";
@@ -183,19 +184,13 @@ int main(int argc, char **argv) {
     XYZ * d_out  = h_out;
     std::atomic_int * worklist = (std::atomic_int *)malloc(sizeof(std::atomic_int));
     ALLOC_ERR(h_in, h_out, worklist);
-    hipDeviceSynchronize(); // why is it here? really needed?
+    // hipDeviceSynchronize(); // why is it here? proving if it does anything
 
     // Initialize
     read_input(h_in, p);
-    hipDeviceSynchronize(); // why is it here? really needed?
-
-    // No need for this, we are on APU model
-    // #ifndef CUDA_8_0
-    //     // Copy to device
-    //     hipStatus = hipMemcpy(d_in, h_in, in_size, hipMemcpyHostToDevice);
-    //     hipDeviceSynchronize();
-    //     if(hipStatus != hipSuccess) { fprintf(stderr, "CUDA error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
-    // #endif
+    hipDeviceSynchronize(); // assuming that we need it
+    
+    // ROI BEGIN
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
@@ -228,7 +223,7 @@ int main(int argc, char **argv) {
     free(h_out);
     free(worklist);
 
-    if(hipStatus != hipSuccess) { fprintf(stderr, "CUDA error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
+    if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
 
     printf("Test Passed\n");
     return 0;
