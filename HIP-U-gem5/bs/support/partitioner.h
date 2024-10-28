@@ -36,13 +36,10 @@
 #ifndef _PARTITIONER_H_
 #define _PARTITIONER_H_
 
-// #ifndef _CUDA_COMPILER_
+#ifndef GPU_COMPILE
 #include <iostream>
-// #endif
-
-// #if !defined(_CUDA_COMPILER_) && defined(CUDA_8_0)
 #include <atomic>
-// #endif
+#endif
 
 // Partitioner definition -----------------------------------------------------
 
@@ -51,11 +48,17 @@ typedef struct Partitioner {
     int n_tasks;
     int cut;
     int current;
+    int thread_id;
+    int n_threads;
 
     // Support for dynamic partitioning
     int strategy;
+#ifdef GPU_COMPILE
+    int * worklist;
     int *tmp;
+#else
     std::atomic_int *worklist;
+#endif
 
 } Partitioner;
 
@@ -65,21 +68,36 @@ typedef struct Partitioner {
 
 // Create a partitioner -------------------------------------------------------
 
-inline Partitioner partitioner_create(int n_tasks, float alpha, std::atomic_int *worklist, int *tmp) {
+inline Partitioner partitioner_create(
+    int n_tasks, float alpha,                               // Basic paramaters
+#ifndef GPU_COMPILE 
+    int thread_id, int n_threads, std::atomic_int *worklist // CPU parameters
+#else                                                       // GPU parameters
+    int *worklist, int *tmp
+#endif
+    ) {
     Partitioner p;
     p.n_tasks = n_tasks;
+#ifndef GPU_COMPILE
+    p.thread_id = thread_id;
+    p.n_threads = n_threads;
+#endif
     if(alpha >= 0.0 && alpha <= 1.0) {
         p.cut = p.n_tasks * alpha;
         p.strategy = STATIC_PARTITIONING;
     } else {
         p.strategy = DYNAMIC_PARTITIONING;
         p.worklist = worklist;
+#ifdef GPU_COMPILE
         p.tmp = tmp;
+#endif
     }
     return p;
 }
 
 // Partitioner iterators: first() ---------------------------------------------
+
+#ifndef GPU_COMPILE
 
 inline int cpu_first(Partitioner *p) {
     if(p->strategy == DYNAMIC_PARTITIONING) {
@@ -89,6 +107,8 @@ inline int cpu_first(Partitioner *p) {
     }
     return p->current;
 }
+
+#else
 
 __device__ inline int gpu_first(Partitioner *p) {
     if(p->strategy == DYNAMIC_PARTITIONING) {
@@ -103,7 +123,11 @@ __device__ inline int gpu_first(Partitioner *p) {
     return p->current;
 }
 
+#endif
+
 // Partitioner iterators: more() ----------------------------------------------
+
+#ifndef GPU_COMPILE
 
 inline bool cpu_more(const Partitioner *p) {
     if(p->strategy == DYNAMIC_PARTITIONING) {
@@ -113,11 +137,17 @@ inline bool cpu_more(const Partitioner *p) {
     }
 }
 
+#else
+
 __device__ inline bool gpu_more(const Partitioner *p) {
     return (p->current < p->n_tasks);
 }
 
+#endif
+
 // Partitioner iterators: next() ----------------------------------------------
+
+#ifndef GPU_COMPILE
 
 inline int cpu_next(Partitioner *p) {
     if(p->strategy == DYNAMIC_PARTITIONING) {
@@ -127,6 +157,8 @@ inline int cpu_next(Partitioner *p) {
     }
     return p->current;
 }
+
+#else
 
 __device__ inline int gpu_next(Partitioner *p) {
     if(p->strategy == DYNAMIC_PARTITIONING) {
@@ -140,6 +172,8 @@ __device__ inline int gpu_next(Partitioner *p) {
     }
     return p->current;
 }
+
+#endif
 
 #endif
 

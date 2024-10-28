@@ -73,7 +73,8 @@ void run_cpu_threads(XYZ *in, XYZ *outp, int n_tasks, float alpha, int n_threads
     std::vector<std::thread> cpu_threads;
     for(int k = 0; k < n_threads; k++) {
         cpu_threads.push_back(std::thread([=]() {
-
+            
+            // k is the thread_id
             Partitioner p = partitioner_create(n_tasks, alpha, k, n_threads, worklist);
 
             const int wg_in_J = divceil(out_size_j, n_gpu_threads);

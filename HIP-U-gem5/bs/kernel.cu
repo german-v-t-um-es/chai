@@ -34,6 +34,8 @@
  *
  */
 
+#define GPU_COMPILE
+
 #include "support/common.h"
 #include "support/partitioner.h"
 

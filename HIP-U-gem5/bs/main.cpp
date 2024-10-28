@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
-        if(p.alpha < 0.0 || p.alpha > 1.0) { // Dynamic partitioning
+        if(p.alpha < 0.0 || p.alpha > 1.0) { // Dynamic partitioning, confirmed
             worklist[0].store(0);
         }
 
