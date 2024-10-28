@@ -48,8 +48,10 @@ typedef struct Partitioner {
     int n_tasks;
     int cut;
     int current;
+#ifndef GPU_COMPILE
     int thread_id;
     int n_threads;
+#endif
 
     // Support for dynamic partitioning
     int strategy;

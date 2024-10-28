@@ -38,15 +38,7 @@
 #include "support/common.h"
 
 void run_cpu_threads(T *output, T *input, std::atomic_int *flags, int size, int value, int n_threads, int ldim,
-    int n_tasks, float alpha
-#ifdef CUDA_8_0
-    , std::atomic_int *worklist
-#endif
-    );
+    int n_tasks, float alpha, std::atomic_int *worklist);
 
 hipError_t call_StreamCompaction_kernel(int blocks, int threads, int size, T value, int n_tasks, float alpha, 
-    T *output, T *input, int *flags, int l_mem_size
-#ifdef CUDA_8_0
-    , int *worklist
-#endif
-		);
+    T *output, T *input, int *flags, int l_mem_size, int *worklist);

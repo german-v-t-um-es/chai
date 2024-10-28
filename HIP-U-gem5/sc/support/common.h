@@ -36,8 +36,6 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#define CUDA_8_0
-
 #define T int
 #ifdef REGISTERS
 #define REGS REGISTERS

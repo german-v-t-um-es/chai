@@ -36,13 +36,11 @@
 #ifndef _PARTITIONER_H_
 #define _PARTITIONER_H_
 
-#ifndef _CUDA_COMPILER_
+#ifndef GPU_COMPILE
 #include <iostream>
-#endif
-
-#if !defined(_CUDA_COMPILER_) && defined(CUDA_8_0)
 #include <atomic>
 #endif
+
 
 // Partitioner definition -----------------------------------------------------
 
@@ -51,21 +49,17 @@ typedef struct Partitioner {
     int n_tasks;
     int cut;
     int current;
-#ifndef _CUDA_COMPILER_
+#ifndef GPU_COMPILE
     int thread_id;
     int n_threads;
 #endif
 
-
-#ifdef CUDA_8_0
-    // CUDA 8.0 support for dynamic partitioning
     int strategy;
-#ifdef _CUDA_COMPILER_
+#ifdef GPU_COMPILE
     int *worklist;
     int *tmp;
 #else
     std::atomic_int *worklist;
-#endif
 #endif
 
 } Partitioner;
@@ -76,40 +70,31 @@ typedef struct Partitioner {
 
 // Create a partitioner -------------------------------------------------------
 
-#ifdef _CUDA_COMPILER_
+#ifdef GPU_COMPILE
 __device__
 #endif
-inline Partitioner partitioner_create(int n_tasks, float alpha
-#ifndef _CUDA_COMPILER_
-    , int thread_id, int n_threads
-#endif
-#ifdef CUDA_8_0
-#ifdef _CUDA_COMPILER_
-    , int *worklist
-    , int *tmp
-#else
-    , std::atomic_int *worklist
-#endif
+inline Partitioner partitioner_create(
+    int n_tasks, float alpha,                               // Basic paramaters
+#ifndef GPU_COMPILE
+    int thread_id, int n_threads, std::atomic_int *worklist // CPU parameters
+#else                                                       // GPU parameters
+    int *worklist, int *tmp
 #endif
     ) {
     Partitioner p;
     p.n_tasks = n_tasks;
-#ifndef _CUDA_COMPILER_
+#ifndef GPU_COMPILE
     p.thread_id = thread_id;
     p.n_threads = n_threads;
 #endif
     if(alpha >= 0.0 && alpha <= 1.0) {
         p.cut = p.n_tasks * alpha;
-#ifdef CUDA_8_0
         p.strategy = STATIC_PARTITIONING;
-#endif
     } else {
-#ifdef CUDA_8_0
         p.strategy = DYNAMIC_PARTITIONING;
         p.worklist = worklist;
-#ifdef _CUDA_COMPILER_
+#ifdef GPU_COMPILE
         p.tmp = tmp;
-#endif
 #endif
     }
     return p;
@@ -117,15 +102,12 @@ inline Partitioner partitioner_create(int n_tasks, float alpha
 
 // Partitioner iterators: first() ---------------------------------------------
 
-#ifndef _CUDA_COMPILER_
+#ifndef GPU_COMPILE
 
 inline int cpu_first(Partitioner *p) {
-#ifdef CUDA_8_0
     if(p->strategy == DYNAMIC_PARTITIONING) {
         p->current = p->worklist->fetch_add(1);
-    } else
-#endif
-    {
+    } else {
         p->current = p->thread_id;
     }
     return p->current;
@@ -134,16 +116,13 @@ inline int cpu_first(Partitioner *p) {
 #else
 
 __device__ inline int gpu_first(Partitioner *p) {
-#ifdef CUDA_8_0
     if(p->strategy == DYNAMIC_PARTITIONING) {
         if(threadIdx.y == 0 && threadIdx.x == 0) {
             p->tmp[0] = atomicAdd(p->worklist, 1); // p->tmp[0] = atomicAdd_system(p->worklist, 1);
         }
         __syncthreads();
         p->current = p->tmp[0];
-    } else
-#endif
-    {
+    } else {
         p->current = p->cut + blockIdx.x;
     }
     return p->current;
@@ -153,15 +132,12 @@ __device__ inline int gpu_first(Partitioner *p) {
 
 // Partitioner iterators: more() ----------------------------------------------
 
-#ifndef _CUDA_COMPILER_
+#ifndef GPU_COMPILE
 
 inline bool cpu_more(const Partitioner *p) {
-#ifdef CUDA_8_0
     if(p->strategy == DYNAMIC_PARTITIONING) {
         return (p->current < p->n_tasks);
-    } else
-#endif
-    {
+    } else {
         return (p->current < p->cut);
     }
 }
@@ -176,15 +152,12 @@ __device__ inline bool gpu_more(const Partitioner *p) {
 
 // Partitioner iterators: next() ----------------------------------------------
 
-#ifndef _CUDA_COMPILER_
+#ifndef GPU_COMPILE
 
 inline int cpu_next(Partitioner *p) {
-#ifdef CUDA_8_0
     if(p->strategy == DYNAMIC_PARTITIONING) {
         p->current = p->worklist->fetch_add(1);
-    } else
-#endif
-    {
+    } else {
         p->current = p->current + p->n_threads;
     }
     return p->current;
@@ -193,16 +166,13 @@ inline int cpu_next(Partitioner *p) {
 #else
 
 __device__ inline int gpu_next(Partitioner *p) {
-#ifdef CUDA_8_0
     if(p->strategy == DYNAMIC_PARTITIONING) {
         if(threadIdx.y == 0 && threadIdx.x == 0) {
-            p->tmp[0] = atomicAdd(p->worklist, 1); // p->tmp[0] = atomicAdd_system(p->worklist, 1);
+            p->tmp[0] = atomicAdd(p->worklist, 1); // CUDA8.0: p->tmp[0] = atomicAdd_system(p->worklist, 1);
         }
         __syncthreads();
         p->current = p->tmp[0];
-    } else
-#endif
-    {
+    } else {
         p->current = p->current + gridDim.x;
     }
     return p->current;

@@ -34,7 +34,7 @@
  *
  */
 
-#define _CUDA_COMPILER_
+#define GPU_COMPILE
 
 #include "support/common.h"
 #include "support/partitioner.h"
@@ -98,24 +98,14 @@ __device__ int block_binary_prefix_sums(int *l_count, int x, int *l_data) {
 
 // HIP kernel ------------------------------------------------------------------------------------------
 __global__ void StreamCompaction_kernel(int size, T value, int n_tasks, float alpha, T *output, T *input,
-    int *flags
-#ifdef CUDA_8_0
-    , int *worklist
-#endif
-    ) {
+    int *flags, int *worklist) {
 
     HIP_DYNAMIC_SHARED( int, l_mem)
     int* l_data = l_mem;
     int* l_count = &l_data[blockDim.x];
-#ifdef CUDA_8_0
     int* l_tmp = &l_count[1];
-#endif
 
-#ifdef CUDA_8_0
     Partitioner p = partitioner_create(n_tasks, alpha, worklist, l_tmp);
-#else
-    Partitioner p = partitioner_create(n_tasks, alpha);
-#endif
 
     for(int my_s = gpu_first(&p); gpu_more(&p); my_s = gpu_next(&p)) {
 
@@ -127,11 +117,8 @@ __global__ void StreamCompaction_kernel(int size, T value, int n_tasks, float al
         int local_cnt = 0;
         // Declare on-chip memory
         T reg[REGS];
-#ifdef CUDA_8_0
+
         int pos = my_s * REGS * blockDim.x + threadIdx.x;
-#else
-        int pos = (my_s - p.cut) * REGS * blockDim.x + threadIdx.x;
-#endif
 // Load in on-chip memory
 #pragma unroll
         for(int j = 0; j < REGS; j++) {
@@ -147,16 +134,8 @@ __global__ void StreamCompaction_kernel(int size, T value, int n_tasks, float al
 
         // Set global synch
         if(threadIdx.x == 0) {
-            int p_count;
-#ifdef CUDA_8_0
-            while((p_count = atomicAdd(&flags[my_s], 0)) == 0) { //atomicAdd_system(&flags[my_s], 0))
-            }
+            while((p_count = atomicAdd(&flags[my_s], 0)) == 0) {} //atomicAdd_system(&flags[my_s], 0))
             atomicAdd(&flags[my_s + 1], p_count + l_count[0]); //atomicAdd_system(&flags[my_s + 1], p_count + l_count[0]);
-#else
-            while((p_count = atomicAdd(&flags[my_s], 0)) == 0) {
-            }
-            atomicAdd(&flags[my_s + 1], p_count + l_count[0]);
-#endif
             l_count[0] = p_count - 1;
         }
         __syncthreads();
@@ -173,19 +152,11 @@ __global__ void StreamCompaction_kernel(int size, T value, int n_tasks, float al
 }
 
 hipError_t call_StreamCompaction_kernel(int blocks, int threads, int size, T value, int n_tasks, float alpha, 
-    T *output, T *input, int *flags, int l_mem_size
-#ifdef CUDA_8_0
-    , int *worklist
-#endif
-    ){
+    T *output, T *input, int *flags, int l_mem_size, int *worklist){
     dim3 dimGrid(blocks);
     dim3 dimBlock(threads);
     hipLaunchKernelGGL(StreamCompaction_kernel, dim3(dimGrid), dim3(dimBlock), l_mem_size, 0, size, value, n_tasks, alpha,
-        output, input, flags
-#ifdef CUDA_8_0
-        , worklist
-#endif
-        );
+        output, input, flags, worklist);
     hipError_t err = hipGetLastError();
     return err;
 }
