@@ -69,9 +69,9 @@ __global__ void Bezier_surface(int n_tasks, float alpha, int in_size_i, int in_s
       
     HIP_DYNAMIC_SHARED(XYZ, l_mem) //declares a shared array of XYZ, shared in the block
     XYZ* l_in = l_mem;
-    //int* l_tmp = (int*)&l_in[(in_size_i+1)*(in_size_j+1)];
+    int* l_tmp = (int*)&l_in[(in_size_i+1)*(in_size_j+1)];
 
-    Partitioner p = partitioner_create(n_tasks, alpha, worklist); //, l_tmp);
+    Partitioner p = partitioner_create(n_tasks, alpha, worklist, l_tmp);
 
     const int wg_in_J = divceil(out_size_j, blockDim.x);
     const int wg_in_I = divceil(out_size_i, blockDim.y);

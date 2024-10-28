@@ -54,6 +54,7 @@ typedef struct Partitioner {
 
     // Support for dynamic partitioning
     int strategy;
+    int *tmp;
     std::atomic_int *worklist;
 
 } Partitioner;
@@ -64,7 +65,7 @@ typedef struct Partitioner {
 
 // Create a partitioner -------------------------------------------------------
 
-inline Partitioner partitioner_create(int n_tasks, float alpha, std::atomic_int *worklist) {
+inline Partitioner partitioner_create(int n_tasks, float alpha, std::atomic_int *worklist, int *tmp) {
     Partitioner p;
     p.n_tasks = n_tasks;
     if(alpha >= 0.0 && alpha <= 1.0) {
@@ -73,6 +74,7 @@ inline Partitioner partitioner_create(int n_tasks, float alpha, std::atomic_int 
     } else {
         p.strategy = DYNAMIC_PARTITIONING;
         p.worklist = worklist;
+        p.tmp = tmp;
     }
     return p;
 }
@@ -88,6 +90,19 @@ inline int cpu_first(Partitioner *p) {
     return p->current;
 }
 
+__device__ inline int gpu_first(Partitioner *p) {
+    if(p->strategy == DYNAMIC_PARTITIONING) {
+        if(threadIdx.y == 0 && threadIdx.x == 0) {
+            p->tmp[0] = atomicAdd(p->worklist, 1); // CUDA8.0: p->tmp[0] = atomicAdd_system(p->worklist, 1);
+        }
+        __syncthreads();
+        p->current = p->tmp[0];
+    } else {
+        p->current = p->cut + blockIdx.x;
+    }
+    return p->current;
+}
+
 // Partitioner iterators: more() ----------------------------------------------
 
 inline bool cpu_more(const Partitioner *p) {
@@ -98,6 +113,10 @@ inline bool cpu_more(const Partitioner *p) {
     }
 }
 
+__device__ inline bool gpu_more(const Partitioner *p) {
+    return (p->current < p->n_tasks);
+}
+
 // Partitioner iterators: next() ----------------------------------------------
 
 inline int cpu_next(Partitioner *p) {
@@ -105,6 +124,19 @@ inline int cpu_next(Partitioner *p) {
         p->current = p->worklist->fetch_add(1);
     } else {
         p->current = p->current + p->n_threads;
+    }
+    return p->current;
+}
+
+__device__ inline int gpu_next(Partitioner *p) {
+    if(p->strategy == DYNAMIC_PARTITIONING) {
+        if(threadIdx.y == 0 && threadIdx.x == 0) {
+            p->tmp[0] = atomicAdd(p->worklist, 1); // CUDA8.0: p->tmp[0] = atomicAdd_system(p->worklist, 1);
+        }
+        __syncthreads();
+        p->current = p->tmp[0];
+    } else {
+        p->current = p->current + gridDim.x;
     }
     return p->current;
 }
