@@ -201,6 +201,8 @@ int main(int argc, char **argv) {
 
             if(proxy_tid == GPU_PROXY) {
 
+                fprintf("Launching GPU Proxy\n");
+
                 for(int task_id = gpu_first(&partitioner); gpu_more(&partitioner); task_id = gpu_next(&partitioner)) {
 
                     // Next frame
@@ -241,6 +243,8 @@ int main(int argc, char **argv) {
                 }
 
             } else if(proxy_tid == CPU_PROXY) {
+
+                fprintf("Launching GPU Proxy\n");
 
                 for(int task_id = cpu_first(&partitioner); cpu_more(&partitioner); task_id = cpu_next(&partitioner)) {
 

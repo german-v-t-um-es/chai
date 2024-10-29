@@ -185,6 +185,7 @@ int main(int argc, char **argv) {
 
         // Launch GPU threads
         // Kernel launch
+        fprintf(stderr, "launching GPU\n");
         if(p.n_gpu_blocks > 0) {
             hipStatus = call_Histogram_kernel(p.n_gpu_blocks, p.n_gpu_threads, p.in_size, p.n_bins, n_tasks, 
                 p.alpha, d_in, (unsigned int*)d_histo, p.n_bins * sizeof(unsigned int) + sizeof(int), (int*)worklist);
@@ -192,11 +193,14 @@ int main(int argc, char **argv) {
         }
 
         // Launch CPU threads
+        fprintf(stderr, "launching CPU\n");
         std::thread main_thread(run_cpu_threads, h_histo, h_in, p.in_size, p.n_bins, p.n_threads, p.n_gpu_threads,
             n_tasks, p.alpha, worklist);
 
         hipDeviceSynchronize();
+        fprintf(stderr, "HIP device Synchronize done\n");
         main_thread.join();
+        fprintf(stderr, "Iteration %d finished\n", rep);
     }
 
     // Verify answer
