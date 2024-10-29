@@ -34,30 +34,19 @@
  *
  */
 
-#define _CUDA_COMPILER_
+#define GPU_COMPILE
 
 #include "support/common.h"
 #include "support/partitioner.h"
 
 // HIP kernel ------------------------------------------------------------------------------------------
 __global__ void Histogram_kernel(int size, int bins, int n_tasks, float alpha, unsigned int *data,
-    unsigned int *histo
-#ifdef CUDA_8_0
-    , int *worklist
-#endif
-    ) {
+    unsigned int *histo, int *worklist) {
 
     HIP_DYNAMIC_SHARED( unsigned int, l_mem)
     unsigned int* l_histo = l_mem;
-#ifdef CUDA_8_0
     int* l_tmp = (int*)&l_histo[bins];
-#endif
-    
-#ifdef CUDA_8_0
     Partitioner p = partitioner_create(n_tasks, alpha, worklist, l_tmp);
-#else
-    Partitioner p = partitioner_create(n_tasks, alpha);
-#endif
     
     // Block and thread index
     const int bx = blockIdx.x;
@@ -86,29 +75,17 @@ __global__ void Histogram_kernel(int size, int bins, int n_tasks, float alpha, u
 
     // Merge per-block histograms and write to global memory
     for(int pos = tx; pos < bins; pos += bD) {
-// Atomic addition in global memory
-#ifdef CUDA_8_0
+        // Atomic addition in global memory
         atomicAdd(histo + pos, l_histo[pos]); // atomicAdd_system(histo + pos, l_histo[pos]);
-#else
-        atomicAdd(histo + pos, l_histo[pos]);
-#endif
     }
 }
 
 hipError_t call_Histogram_kernel(int blocks, int threads, int size, int bins, int n_tasks, float alpha, 
-    unsigned int *data, unsigned int *histo, int l_mem_size
-#ifdef CUDA_8_0
-    , int* worklist
-#endif
-    ){
+    unsigned int *data, unsigned int *histo, int l_mem_size, int* worklist){
     dim3 dimGrid(blocks);
     dim3 dimBlock(threads);
     hipLaunchKernelGGL(Histogram_kernel, dim3(dimGrid), dim3(dimBlock), l_mem_size, 0, size, bins, n_tasks, alpha, 
-        data, histo
-#ifdef CUDA_8_0
-        , worklist
-#endif
-        );
+        data, histo, worklist);
     hipError_t err = hipGetLastError();
     return err;
 }

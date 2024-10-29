@@ -118,7 +118,7 @@ inline int cpu_first(Partitioner *p) {
 __device__ inline int gpu_first(Partitioner *p) {
     if(p->strategy == DYNAMIC_PARTITIONING) {
         if(threadIdx.y == 0 && threadIdx.x == 0) {
-            p->tmp[0] = atomicAdd(p->worklist, 1); // CUDA8.0: p->tmp[0] = atomicAdd_system(p->worklist, 1);
+            p->tmp[0] = atomicAdd(p->worklist, 1);
         }
         __syncthreads();
         p->current = p->tmp[0];
@@ -168,7 +168,7 @@ inline int cpu_next(Partitioner *p) {
 __device__ inline int gpu_next(Partitioner *p) {
     if(p->strategy == DYNAMIC_PARTITIONING) {
         if(threadIdx.y == 0 && threadIdx.x == 0) {
-            p->tmp[0] = atomicAdd(p->worklist, 1); // CUDA8.0: p->tmp[0] = atomicAdd_system(p->worklist, 1);
+            p->tmp[0] = atomicAdd(p->worklist, 1);
         }
         __syncthreads();
         p->current = p->tmp[0];
