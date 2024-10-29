@@ -34,7 +34,7 @@
  *
  */
 
-#define _CUDA_COMPILER_
+#define GPU_COMPILE
 
 #include "support/common.h"
 __constant__ float gaus[3][3] = {{0.0625f, 0.125f, 0.0625f}, {0.1250f, 0.250f, 0.1250f}, {0.0625f, 0.125f, 0.0625f}};

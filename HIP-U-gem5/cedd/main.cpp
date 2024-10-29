@@ -64,8 +64,8 @@ struct Params {
         device          = 0;
         n_gpu_threads   = 16;
         n_threads       = 4;
-				n_warmup        = 1;
-				n_reps          = 10;
+        n_warmup        = 1;
+        n_reps          = 10;
         alpha           = 0.2;
         file_name       = "gem5-resources/src/gpu/chai/HIP-U-gem5/cedd/input/peppa/";
         comparison_file = "gem5-resources/src/gpu/chai/HIP-U-gem5/cedd/output/peppa/";
@@ -157,26 +157,19 @@ int main(int argc, char **argv) {
     Params      p(argc, argv);
     hipError_t  hipStatus;
 
-    // Initialize (part 1)
+    // Allocate
     const int n_frames = p.n_warmup + p.n_reps;
     unsigned char **all_gray_frames = (unsigned char **)malloc(n_frames * sizeof(unsigned char *));
-    int     rowsc, colsc, in_size;
+    int rowsc, colsc, in_size;
     read_input(all_gray_frames, rowsc, colsc, in_size, p);
 
-    // Allocate buffers
     const int CPU_PROXY = 0;
     const int GPU_PROXY = 1;
-    unsigned char *    h_in_out[2];
+    unsigned char *h_in_out[2];
     h_in_out[CPU_PROXY] = (unsigned char *)malloc(in_size);
-#ifdef CUDA_8_0
     h_in_out[GPU_PROXY] = (unsigned char *)malloc(in_size);
     unsigned char *d_in_out = h_in_out[GPU_PROXY];
-#else
-    h_in_out[GPU_PROXY] = (unsigned char *)malloc(in_size);
-    unsigned char * d_in_out;
-    hipStatus = hipMalloc((void**)&d_in_out, in_size);
-    ALLOC_ERR(h_in_out[GPU_PROXY]);
-#endif
+
     unsigned char *h_interm_cpu_proxy = (unsigned char *)malloc(in_size);
     unsigned char *h_theta_cpu_proxy  = (unsigned char *)malloc(in_size);
     unsigned char *d_interm_gpu_proxy;
@@ -185,16 +178,17 @@ int main(int argc, char **argv) {
     hipStatus = hipMalloc((void**)&d_theta_gpu_proxy, in_size);
     std::atomic<int> next_frame;
     hipDeviceSynchronize();
+
     ALLOC_ERR(h_in_out[CPU_PROXY], h_interm_cpu_proxy, h_theta_cpu_proxy);
     if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };
 
-    // Initialize (part 2)
     unsigned char **all_out_frames = (unsigned char **)malloc(n_frames * sizeof(unsigned char *));
     for(int i = 0; i < n_frames; i++) {
         all_out_frames[i] = (unsigned char *)malloc(in_size);
     }
-    std::atomic_int *worklist    = (std::atomic_int *)malloc(sizeof(std::atomic_int));
+    std::atomic_int *worklist = (std::atomic_int *)malloc(sizeof(std::atomic_int));
     ALLOC_ERR(worklist);
+
     if(p.alpha < 0.0 || p.alpha > 1.0) { // Dynamic partitioning
         worklist[0].store(0);
     }
@@ -211,15 +205,6 @@ int main(int argc, char **argv) {
 
                     // Next frame
                     memcpy(h_in_out[proxy_tid], all_gray_frames[task_id], in_size);
-
-#ifndef CUDA_8_0
-                    // Copy to Device
-                    hipStatus = hipMemcpy(d_in_out, h_in_out[proxy_tid], in_size, hipMemcpyHostToDevice);
-                    if(hipStatus != hipSuccess) { fprintf(stderr, "CUDA error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
-                    hipDeviceSynchronize();
-#endif
-
-                    //m5_work_begin(0, 0);
 
                     // GAUSSIAN KERNEL
                     // Kernel launch
@@ -250,13 +235,6 @@ int main(int argc, char **argv) {
                     if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };
 
                     hipDeviceSynchronize();
-                    //m5_work_end(0, 0);
-
-#ifndef CUDA_8_0
-                    hipStatus = hipMemcpy(h_in_out[proxy_tid], d_in_out, in_size, hipMemcpyDeviceToHost);
-                    if(hipStatus != hipSuccess) { fprintf(stderr, "CUDA error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
-                    hipDeviceSynchronize();
-#endif
 
                     memcpy(all_out_frames[task_id], h_in_out[proxy_tid], in_size);
                     
@@ -293,12 +271,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, " Verified\n");
 
     // Release buffers
-#ifdef CUDA_8_0
     free(h_in_out[GPU_PROXY]);
-#else
-    free(h_in_out[GPU_PROXY]);
-    hipStatus = hipFree(d_in_out);
-#endif
     free(h_in_out[CPU_PROXY]);
     free(h_interm_cpu_proxy);
     free(h_theta_cpu_proxy);
