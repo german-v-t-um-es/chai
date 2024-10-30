@@ -1,4 +1,4 @@
-CPPSRC = main.cpp kernel.cu kernel.cpp
+CPPSRC = main.cpp kernel.cu kernel.cpp ../m5iface/m5iface.c
 EXECUTABLE = bs.gem5
 # BC has a compilation error in host code with ROCm 4.0, so O2 and O3 do not
 # pass even on real GPUs
@@ -9,7 +9,7 @@ HIPCC = $(HIP_PATH)/bin/hipcc
 
 # these are needed for m5ops
 GEM5_PATH ?= $(shell pwd)/../.gem5
-CFLAGS += -I$(GEM5_PATH)/include -lz -lm -lc -lpthread -O1
+CFLAGS += -I$(GEM5_PATH)/include -lz -lm -lc -I../m5iface -lpthread -O1
 LDFLAGS += -L$(GEM5_PATH)/util/m5/build/x86/out -lm5
 TARGET =gfx801,gfx803,gfx902
 BIN_DIR ?= ./bin
