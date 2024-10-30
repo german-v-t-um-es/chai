@@ -41,6 +41,9 @@
 #include <thread>
 #include <assert.h>
 
+// Definition of ROI
+#include <m5iface.h>
+
 // Params ---------------------------------------------------------------------
 struct Params {
 
@@ -167,6 +170,9 @@ void read_input(XYZ *in, const Params &p) {
 // Main -----------------------------------------------------------------------
 int main(int argc, char **argv) {
 
+    // Declaration of ROI
+    simInit();
+
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
@@ -190,7 +196,8 @@ int main(int argc, char **argv) {
     read_input(h_in, p);
     hipDeviceSynchronize(); // assuming that we need it
     
-    // ROI BEGIN
+    // Beginning of ROI
+    simBeginRegionOfInterest();
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
@@ -214,6 +221,9 @@ int main(int argc, char **argv) {
         hipDeviceSynchronize(); // This one seems fine
         main_thread.join();
     }
+
+    // Ending of ROI
+    simEndRegionOfInterest();
 
     // Verify answer
     verify(h_in, h_out, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);
