@@ -16,7 +16,7 @@ void simBackoffBegin(void) {}
 void simBackoffEnd(void) {}
 void simCodeRegionBegin(unsigned long int codeRegionId) {}
 void simCodeRegionEnd(unsigned long int codeRegionId) {}
-//void simResetStats(void) {}
+void simResetStats(void) {}
 
 #ifdef ANNOTATE_PROC_MAPS
 #error "ANNOTATE_PROC_MAPS requires ENABLE_M5OPS"
