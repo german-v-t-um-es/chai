@@ -42,7 +42,7 @@
 #include <assert.h>
 
 // Definition of ROI
-#include <m5iface.h>
+#include "../m5iface/m5iface.h"
 
 // Params ---------------------------------------------------------------------
 struct Params {
