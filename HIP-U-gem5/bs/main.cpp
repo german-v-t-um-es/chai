@@ -204,9 +204,10 @@ int main(int argc, char **argv) {
     read_input(h_in, p);
     hipDeviceSynchronize(); // assuming that we need it
     
-    if(p.roi)
+    if(p.roi){
         // Beginning of ROI
         simBeginRegionOfInterest();
+    }  
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
@@ -231,9 +232,10 @@ int main(int argc, char **argv) {
         main_thread.join();
     }
 
-    if(p.roi)
+    if(p.roi){
         // Ending of ROI
         simEndRegionOfInterest();
+    }
 
     // Verify answer
     verify(h_in, h_out, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);
