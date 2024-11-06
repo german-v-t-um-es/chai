@@ -11,6 +11,7 @@ HIPCC = $(HIP_PATH)/bin/hipcc
 GEM5_PATH ?= $(shell pwd)/../.gem5
 CFLAGS += -I$(GEM5_PATH)/include -lz -lm -lc -I../m5iface -lpthread -O1
 LDFLAGS += -L$(GEM5_PATH)/util/m5/build/x86/out -lm5
+PATH_TO_LIBM5IFACE=$(GEM5_PATH)/m5iface
 TARGET =gfx801,gfx803,gfx902
 BIN_DIR ?= ./bin
 
