@@ -175,12 +175,12 @@ void read_input(XYZ *in, const Params &p) {
 // Main -----------------------------------------------------------------------
 int main(int argc, char **argv) {
 
-    if(roi)
-        // Declaration of ROI
-        simInit();
-
     const Params p(argc, argv);
     hipError_t  hipStatus;
+
+    if(p.roi)
+        // Declaration of ROI
+        simInit();
 
     // Allocate
     int in_size   = (p.in_size_i + 1) * (p.in_size_j + 1) * sizeof(XYZ);
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
     read_input(h_in, p);
     hipDeviceSynchronize(); // assuming that we need it
     
-    if(roi)
+    if(p.roi)
         // Beginning of ROI
         simBeginRegionOfInterest();
 
@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
         main_thread.join();
     }
 
-    if(roi)
+    if(p.roi)
         // Ending of ROI
         simEndRegionOfInterest();
 
