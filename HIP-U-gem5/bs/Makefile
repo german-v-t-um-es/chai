@@ -12,7 +12,8 @@ GEM5_PATH ?= $(shell pwd)/../.gem5
 CFLAGS += -I$(GEM5_PATH)/include -lz -lm -lc -lpthread -O1
 LDFLAGS += -L$(GEM5_PATH)/util/m5/build/x86/out -lm5
 LDFLAGS += -L$(GEM5_PATH)/m5iface/build/x86_64 -L/opt/rocm/lib \
-           -Wl,-rpath,$(GEM5_PATH)/m5iface/build/x86_64 -Wl,-rpath,/opt/rocm/lib
+           -Wl,-rpath,$(GEM5_PATH)/m5iface/build/x86_64 \
+           -lm5iface
 TARGET =gfx801,gfx803,gfx902
 BIN_DIR ?= ./bin
 
