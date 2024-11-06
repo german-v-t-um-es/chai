@@ -59,6 +59,7 @@ struct Params {
     int         in_size_j;
     int         out_size_i;
     int         out_size_j;
+    int         roi;
 
     Params(int argc, char **argv) {
         device        = 0;
@@ -66,14 +67,14 @@ struct Params {
         n_gpu_blocks  = 32;
         n_threads     = 4;
         n_warmup      = 0;
-        // Probar con dos reps
         n_reps        = 1;
         alpha         = 0.1;
         file_name     = "gem5-resources/src/gpu/chai/HIP-U-gem5/bs/input/control.txt";
         in_size_i = in_size_j = 3;
         out_size_i = out_size_j = 300;
+        roi = 0;
         int opt;
-        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:a:f:m:n:")) >= 0) {
+        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:a:f:m:n:o")) >= 0) {
             switch(opt) {
             case 'h':
                 usage();
@@ -89,6 +90,7 @@ struct Params {
             case 'f': file_name     = optarg; break;
             case 'm': in_size_i = in_size_j = atoi(optarg); break;
             case 'n': out_size_i = out_size_j = atoi(optarg); break;
+            case 'o': roi = 1; break;
             default:
                 fprintf(stderr, "\nUnrecognized option!\n");
                 usage();
@@ -130,6 +132,9 @@ struct Params {
                 "\n    -f <F>    name of input file with control points (default=input/control.txt)"
                 "\n    -m <N>    input size in both dimensions (default=3)"
                 "\n    -n <R>    output resolution in both dimensions (default=300)"
+                "\n"
+                "Stats-collection options:"
+                "\n    -o        collect stats only for ROI"
                 "\n");
     }
 };
@@ -170,8 +175,9 @@ void read_input(XYZ *in, const Params &p) {
 // Main -----------------------------------------------------------------------
 int main(int argc, char **argv) {
 
-    // Declaration of ROI
-    simInit();
+    if(roi)
+        // Declaration of ROI
+        simInit();
 
     const Params p(argc, argv);
     hipError_t  hipStatus;
@@ -196,8 +202,9 @@ int main(int argc, char **argv) {
     read_input(h_in, p);
     hipDeviceSynchronize(); // assuming that we need it
     
-    // Beginning of ROI
-    simBeginRegionOfInterest();
+    if(roi)
+        // Beginning of ROI
+        simBeginRegionOfInterest();
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
@@ -222,8 +229,9 @@ int main(int argc, char **argv) {
         main_thread.join();
     }
 
-    // Ending of ROI
-    simEndRegionOfInterest();
+    if(roi)
+        // Ending of ROI
+        simEndRegionOfInterest();
 
     // Verify answer
     verify(h_in, h_out, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);
