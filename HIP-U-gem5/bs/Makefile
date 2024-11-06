@@ -1,4 +1,4 @@
-CPPSRC = main.cpp kernel.cu kernel.cpp ../m5iface/m5iface.c
+CPPSRC = main.cpp kernel.cu kernel.cpp
 EXECUTABLE = bs.gem5
 # BC has a compilation error in host code with ROCm 4.0, so O2 and O3 do not
 # pass even on real GPUs
