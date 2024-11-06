@@ -9,8 +9,10 @@ HIPCC = $(HIP_PATH)/bin/hipcc
 
 # these are needed for m5ops
 GEM5_PATH ?= $(shell pwd)/../.gem5
-CFLAGS += -I$(GEM5_PATH)/include -I../m5iface -O1
-LDFLAGS += -L$(GEM5_PATH)/util/m5/build/x86/out -L$(GEM5_PATH)/m5iface/build/x86_64 -Wl,-Bstatic -lm5 -lm5iface -Wl,-Bdynamic -lz -lm -lpthread
+CFLAGS += -I$(GEM5_PATH)/include -lz -lm -lc -lpthread -O1
+LDFLAGS += -L$(GEM5_PATH)/util/m5/build/x86/out -lm5
+LDFLAGS += -L$(GEM5_PATH)/m5iface/build/x86_64 -L/opt/rocm/lib \
+           -Wl,-rpath,$(GEM5_PATH)/m5iface/build/x86_64 -Wl,-rpath,/opt/rocm/lib
 TARGET =gfx801,gfx803,gfx902
 BIN_DIR ?= ./bin
 
