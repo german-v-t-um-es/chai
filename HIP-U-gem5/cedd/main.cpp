@@ -42,11 +42,6 @@
 #include <thread>
 #include <assert.h>
 
-/*extern "C" {
-void m5_work_begin(int workid, uint64_t threadid);
-void m5_work_end(uint64_t workid, uint64_t threadid);
-}*/
-
 // Params ---------------------------------------------------------------------
 struct Params {
 
@@ -63,9 +58,11 @@ struct Params {
     Params(int argc, char **argv) {
         device          = 0;
         n_gpu_threads   = 16;
-        n_threads       = 4;
-        n_warmup        = 1;
-        n_reps          = 10;
+        // Changing number of threads for debug
+        n_threads       = 1;
+        // Changing number of reps to 1 to debug (1/10)
+        n_warmup        = 0;
+        n_reps          = 1;
         alpha           = 0.2;
         file_name       = "gem5-resources/src/gpu/chai/HIP-U-gem5/cedd/input/peppa/";
         comparison_file = "gem5-resources/src/gpu/chai/HIP-U-gem5/cedd/output/peppa/";
@@ -240,6 +237,7 @@ int main(int argc, char **argv) {
 
                     memcpy(all_out_frames[task_id], h_in_out[proxy_tid], in_size);
                     
+                    fprintf("Exiting iteration of GPU kernels\n")
                 }
 
             } else if(proxy_tid == CPU_PROXY) {
@@ -259,12 +257,16 @@ int main(int argc, char **argv) {
 
                     memcpy(all_out_frames[task_id], h_in_out[proxy_tid], in_size);
 
+                    fprintf("Exiting iteration of CPU kernels\n")
+
                 }
 
             }
 
         }));
     }
+
+    fprintf("Ended compute\n")
     std::for_each(proxy_threads.begin(), proxy_threads.end(), [](std::thread &t) { t.join(); });
 
     fprintf(stderr, " System level barrier\n");
