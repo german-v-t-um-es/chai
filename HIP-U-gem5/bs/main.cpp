@@ -178,9 +178,11 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
-    if(p.roi)
+    if(p.roi){
         // Declaration of ROI
         simInit();
+        printf("Obtaining stats of ROI\n");
+    }
 
     // Allocate
     int in_size   = (p.in_size_i + 1) * (p.in_size_j + 1) * sizeof(XYZ);
