@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
 
                     memcpy(all_out_frames[task_id], h_in_out[proxy_tid], in_size);
                     
-                    fprintf("Exiting iteration of GPU kernels\n");
+                    fprintf(stderr, "Exiting iteration of GPU kernels\n");
                 }
 
             } else if(proxy_tid == CPU_PROXY) {
@@ -257,7 +257,7 @@ int main(int argc, char **argv) {
 
                     memcpy(all_out_frames[task_id], h_in_out[proxy_tid], in_size);
 
-                    fprintf("Exiting iteration of CPU kernels\n");
+                    fprintf(stderr, "Exiting iteration of CPU kernels\n");
 
                 }
 
@@ -266,7 +266,7 @@ int main(int argc, char **argv) {
         }));
     }
 
-    fprintf("Ended compute\n");
+    fprintf(stderr, "Ended compute\n");
     std::for_each(proxy_threads.begin(), proxy_threads.end(), [](std::thread &t) { t.join(); });
 
     fprintf(stderr, " System level barrier\n");
