@@ -244,7 +244,7 @@ int main(int argc, char **argv) {
 
             } else if(proxy_tid == CPU_PROXY) {
 
-                fprintf(stderr, "Launching GPU Proxy\n");
+                fprintf(stderr, "Launching CPU Proxy\n");
 
                 for(int task_id = cpu_first(&partitioner); cpu_more(&partitioner); task_id = cpu_next(&partitioner)) {
 

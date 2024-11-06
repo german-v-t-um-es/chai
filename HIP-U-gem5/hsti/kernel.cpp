@@ -71,4 +71,5 @@ void run_cpu_threads(std::atomic_uint *histo, unsigned int *data, int size, int 
         }));
     }
     std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { t.join(); });
+    printf("Thread finished\n");
 }
