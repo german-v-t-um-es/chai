@@ -42,7 +42,7 @@
 #include <assert.h>
 
 // Definition of ROI
-#include "../../../../../../gem5/src/sim/sim_exit.hh"
+#include <gem5/m5ops.h>
 
 // Params ---------------------------------------------------------------------
 struct Params {
@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
     // }  
 
     // Call to exitSimLoop to begin ROI
-    exitSimLoop("ROI Begin");
+    m5_exit("GPU Kernel Completed");
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
@@ -236,7 +236,6 @@ int main(int argc, char **argv) {
     }
 
     // Call to exitSimLoop to end ROI
-    exitSimLoop("ROI End");
 
     // if(p.roi){
     //     // Ending of ROI
