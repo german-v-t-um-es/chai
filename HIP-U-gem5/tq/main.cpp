@@ -68,7 +68,7 @@ struct Params {
         n_threads     = 1;
         n_warmup      = 0;
         n_reps        = 1;
-        file_name     = "gem5-resources/src/gpu/chai/HIP-U-gem5/tq/input/patternsNP100NB512FB25.txt";
+        file_name     = "/home/germanvt/benchmarks/chai/HIP-U-gem5/tq/input/patternsNP100NB512FB10.txt";
         pattern       = 1;
         pool_size     = 3200;
         queue_size    = 320;
