@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
     // }  
 
     // Call to exitSimLoop to begin ROI
-    m5_exit("GPU Kernel Completed");
+    m5_roi_begin();
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
