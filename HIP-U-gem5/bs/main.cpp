@@ -236,6 +236,7 @@ int main(int argc, char **argv) {
     }
 
     // Call to exitSimLoop to end ROI
+    m5_roi_end();
 
     // if(p.roi){
     //     // Ending of ROI
