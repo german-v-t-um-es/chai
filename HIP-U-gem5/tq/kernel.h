@@ -42,6 +42,7 @@ using namespace std;
 void host_insert_tasks(task_t *queues, task_t *task_pool, std::atomic_int *num_consumed_tasks,
     std::atomic_int *num_written_tasks, std::atomic_int *num_task_in_queue, int *last_queue, int *num_tasks,
     int gpuQueueSize, int *offset);
+    
 void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *num_task_in_queue,
     std::atomic_int *num_written_tasks, std::atomic_int *num_consumed_tasks, task_t *task_pool,
     int *data, int gpuQueueSize, int *offset, int *last_queue, int *num_tasks, int tpi, int poolSize,

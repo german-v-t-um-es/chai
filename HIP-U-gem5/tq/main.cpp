@@ -42,11 +42,6 @@
 #include <thread>
 #include <assert.h>
 
-/*extern "C" {
-void m5_work_begin(int workid, uint64_t threadid);
-void m5_work_end(uint64_t workid, uint64_t threadid);
-}*/
-
 // Params ---------------------------------------------------------------------
 struct Params {
 
@@ -67,8 +62,8 @@ struct Params {
         n_gpu_threads = 64;
         n_gpu_blocks  = 320;
         n_threads     = 1;
-				n_warmup      = 0;
-				n_reps        = 1;
+        n_warmup      = 0;
+        n_reps        = 1;
         file_name     = "gem5-resources/src/gpu/chai/HIP-U-gem5/tq/input/patternsNP100NB512FB25.txt";
         pattern       = 1;
         pool_size     = 3200;
@@ -216,8 +211,6 @@ int main(int argc, char **argv) {
         int last_queue = 0;
         int offset     = 0;
 
-        //m5_work_begin(0, 0);
-
         std::thread main_thread(run_cpu_threads, p.n_threads, task_queues, n_tasks_in_queue, n_written_tasks,
             n_consumed_tasks, task_pool, data, p.queue_size, &offset, &last_queue, &num_tasks, p.queue_size,
             p.pool_size, p.n_gpu_blocks);
@@ -230,7 +223,6 @@ int main(int argc, char **argv) {
         hipDeviceSynchronize();
         main_thread.join();
 
-        //m5_work_end(0, 0);
     }
 
     // Verify answer
@@ -246,12 +238,6 @@ int main(int argc, char **argv) {
     free(data);
     free(task_pool_backup);
     hipDeviceSynchronize();
-
-    #ifdef _CUDA_COMPILER_
-    printf("CUDA COMPILER ON\n");
-    #else
-    printf("NO CUDA COMPILER\n");
-    #endif
 
     printf("Test Passed\n");
     return 0;

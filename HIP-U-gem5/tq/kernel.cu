@@ -34,7 +34,7 @@
  *
  */
 
-#define _CUDA_COMPILER_
+#define GPU_COMPILE
 
 #include "support/common.h"
 
@@ -57,17 +57,17 @@ __global__ void TaskQueue_gpu(task_t *queues, int *n_task_in_queue, int *n_writt
             bool not_done = true;
 
             do {
-                if(atomicAdd(n_consumed_tasks + idx_queue, 0) == atomicAdd(n_written_tasks + idx_queue, 0)) { //if(atomicAdd_system(n_consumed_tasks + idx_queue, 0) == atomicAdd_system(n_written_tasks + idx_queue, 0)) {
+                if(atomicAdd(n_consumed_tasks + idx_queue, 0) == atomicAdd(n_written_tasks + idx_queue, 0)) {
                     idx_queue = (idx_queue + 1) % NUM_TASK_QUEUES;
                 } else {
-                    if(atomicAdd(n_task_in_queue + idx_queue, 0) > 0) { //atomicAdd_system(n_task_in_queue + idx_queue, 0)
-                        j = atomicAdd(n_task_in_queue + idx_queue, -1) - 1; //atomicAdd_system(n_task_in_queue + idx_queue, -1)
+                    if(atomicAdd(n_task_in_queue + idx_queue, 0) > 0) { 
+                        j = atomicAdd(n_task_in_queue + idx_queue, -1) - 1; 
                         if(j >= 0) {
                             t->id    = (queues + idx_queue * gpuQueueSize + j)->id;
                             t->op    = (queues + idx_queue * gpuQueueSize + j)->op;
-                            jj       = atomicAdd(n_consumed_tasks + idx_queue, 1) + 1; //atomicAdd_system(n_consumed_tasks + idx_queue, 1)
+                            jj       = atomicAdd(n_consumed_tasks + idx_queue, 1) + 1; 
                             not_done = false;
-                            if(jj == atomicAdd(n_written_tasks + idx_queue, 0)) { //atomicAdd_system(n_written_tasks + idx_queue, 0)
+                            if(jj == atomicAdd(n_written_tasks + idx_queue, 0)) {
                                 idx_queue = (idx_queue + 1) % NUM_TASK_QUEUES;
                             }
                             *last_queue = idx_queue;
