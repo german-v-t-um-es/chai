@@ -133,7 +133,7 @@ struct Params {
                 "\n    -m <N>    input size in both dimensions (default=3)"
                 "\n    -n <R>    output resolution in both dimensions (default=300)"
                 "\n"
-                "Stats-collection options:"
+                "\nStats-collection options:"
                 "\n    -o        collect stats only for ROI"
                 "\n");
     }
@@ -178,11 +178,11 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
-    if(p.roi){
-        // Declaration of ROI
-        simInit();
-        printf("Obtaining stats of ROI\n");
-    }
+    // if(p.roi){
+    //     // Declaration of ROI
+    //     simInit();
+    //     printf("Obtaining stats of ROI\n");
+    // }
 
     // Allocate
     int in_size   = (p.in_size_i + 1) * (p.in_size_j + 1) * sizeof(XYZ);
@@ -204,10 +204,10 @@ int main(int argc, char **argv) {
     read_input(h_in, p);
     hipDeviceSynchronize(); // assuming that we need it
     
-    if(p.roi){
-        // Beginning of ROI
-        simBeginRegionOfInterest();
-    }  
+    // if(p.roi){
+    //     // Beginning of ROI
+    //     simBeginRegionOfInterest();
+    // }  
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
@@ -232,10 +232,10 @@ int main(int argc, char **argv) {
         main_thread.join();
     }
 
-    if(p.roi){
-        // Ending of ROI
-        simEndRegionOfInterest();
-    }
+    // if(p.roi){
+    //     // Ending of ROI
+    //     simEndRegionOfInterest();
+    // }
 
     // Verify answer
     verify(h_in, h_out, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);

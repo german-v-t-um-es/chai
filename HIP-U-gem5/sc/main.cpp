@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
     if(p.roi){
         // Declaration of ROI
         simInit();
-        printf("Obtaining stats of ROI\n");
+        printf("Obtaining stats of ROI\n"); //apu_se.py
     }
 
     // Allocate buffers
