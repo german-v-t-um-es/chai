@@ -42,6 +42,9 @@
 #include <thread>
 #include <assert.h>
 
+// Definition of ROI
+#include "../m5iface/m5iface.h"
+
 // Params ---------------------------------------------------------------------
 struct Params {
 
@@ -55,6 +58,7 @@ struct Params {
     int   in_size;
     int   compaction_factor;
     int   remove_value;
+    int   roi;
 
     Params(int argc, char **argv) {
         device            = 0;
@@ -67,8 +71,9 @@ struct Params {
         in_size           = 1048;
         compaction_factor = 50;
         remove_value      = 0;
+        roi               = 0;
         int opt;
-        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:a:n:c:")) >= 0) {
+        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:a:n:c:o:")) >= 0) {
             switch(opt) {
             case 'h':
                 usage();
@@ -83,6 +88,7 @@ struct Params {
             case 'a': alpha             = atof(optarg); break;
             case 'n': in_size           = atoi(optarg); break;
             case 'c': compaction_factor = atoi(optarg); break;
+            case 'o': roi = 1; break;
             default:
                 fprintf(stderr, "\nUnrecognized option!\n");
                 usage();
@@ -153,6 +159,12 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t hipStatus;
 
+    if(p.roi){
+        // Declaration of ROI
+        simInit();
+        printf("Obtaining stats of ROI\n");
+    }
+
     // Allocate buffers
     const int n_tasks     = divceil(p.in_size, p.n_gpu_threads * REGS);
     const int n_tasks_cpu = n_tasks * p.alpha;
@@ -174,6 +186,11 @@ int main(int argc, char **argv) {
     read_input(h_in_out, p);
     h_flags[0].store(1);
     memcpy(h_in_backup, h_in_out, p.in_size * sizeof(T)); // Backup for reuse across iterations
+
+    if(p.roi){
+        // Beginning of ROI
+        simBeginRegionOfInterest();
+    }
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; rep++) {
@@ -204,6 +221,11 @@ int main(int argc, char **argv) {
         fprintf(stderr, "HIP device Synchronize done\n");
         main_thread.join();
         fprintf(stderr, "Iteration %d finished\n", rep);
+    }
+
+    if(p.roi){
+        // Ending of ROI
+        simEndRegionOfInterest();
     }
 
     // Verify answer

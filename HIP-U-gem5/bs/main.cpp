@@ -74,7 +74,7 @@ struct Params {
         out_size_i = out_size_j = 300;
         roi = 0;
         int opt;
-        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:a:f:m:n:o")) >= 0) {
+        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:a:f:m:n:o:")) >= 0) {
             switch(opt) {
             case 'h':
                 usage();
