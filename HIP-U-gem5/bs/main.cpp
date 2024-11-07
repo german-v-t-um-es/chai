@@ -209,6 +209,9 @@ int main(int argc, char **argv) {
     //     simBeginRegionOfInterest();
     // }  
 
+    // Call to exitSimLoop to begin ROI
+    exitSimLoop("ROI Begin");
+
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
         if(p.alpha < 0.0 || p.alpha > 1.0) { // Dynamic partitioning, confirmed
@@ -231,6 +234,9 @@ int main(int argc, char **argv) {
         hipDeviceSynchronize(); // This one seems fine
         main_thread.join();
     }
+
+    // Call to exitSimLoop to end ROI
+    exitSimLoop("ROI End");
 
     // if(p.roi){
     //     // Ending of ROI
