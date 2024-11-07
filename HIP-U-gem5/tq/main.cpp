@@ -42,6 +42,9 @@
 #include <thread>
 #include <assert.h>
 
+// Definition of ROI
+#include "../m5iface/m5iface.h"
+
 // Params ---------------------------------------------------------------------
 struct Params {
 
@@ -56,6 +59,7 @@ struct Params {
     int         pool_size;
     int         queue_size;
     int         iterations;
+    int         roi;
 
     Params(int argc, char **argv) {
         device        = 0;
@@ -69,8 +73,9 @@ struct Params {
         pool_size     = 3200;
         queue_size    = 320;
         iterations    = 50;
+        roi           = 0;
         int opt;
-        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:f:k:s:q:n:")) >= 0) {
+        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:f:k:s:q:n:o:")) >= 0) {
             switch(opt) {
             case 'h':
                 usage();
@@ -87,6 +92,7 @@ struct Params {
             case 's': pool_size     = atoi(optarg); break;
             case 'q': queue_size    = atoi(optarg); break;
             case 'n': iterations    = atoi(optarg); break;
+            case 'o': roi = 1; break;
             default:
                 fprintf(stderr, "\nUnrecognized option!\n");
                 usage();
@@ -166,6 +172,12 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
+    if(p.roi){
+        // Declaration of ROI
+        simInit();
+        printf("Obtaining stats of ROI\n");
+    }
+
     // Allocate
     int *   pattern = (int *)malloc(p.pool_size * sizeof(int));
     task_t *task_pool = (task_t *)malloc(p.pool_size * sizeof(task_t));
@@ -191,7 +203,12 @@ int main(int argc, char **argv) {
     for(int i = 0; i < NUM_TASK_QUEUES; i++) {
         n_consumed_tasks[i].store(0);
     }
-		memcpy(task_pool_backup, task_pool, p.pool_size * sizeof(task_t));
+    memcpy(task_pool_backup, task_pool, p.pool_size * sizeof(task_t));
+
+    if(p.roi){
+        // Beginning of ROI
+        simBeginRegionOfInterest();
+    }  
 
     for(int rep = 0; rep < p.n_reps + p.n_warmup; rep++) {
 
@@ -223,6 +240,11 @@ int main(int argc, char **argv) {
         hipDeviceSynchronize();
         main_thread.join();
 
+    }
+
+    if(p.roi){
+        // Ending of ROI
+        simEndRegionOfInterest();
     }
 
     // Verify answer
