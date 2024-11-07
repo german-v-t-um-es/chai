@@ -42,7 +42,7 @@
 #include <assert.h>
 
 // Definition of ROI
-#include "../m5iface/m5iface.h"
+#include "../../../../../../gem5/src/sim/sim_exit.hh"
 
 // Params ---------------------------------------------------------------------
 struct Params {
