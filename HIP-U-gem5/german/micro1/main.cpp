@@ -16,7 +16,7 @@ struct Params {
     int         n_threads;
     int         n_warmup;
     int         n_reps;
-    int         alpha;
+    float       alpha;
     int         size;
 
     Params(int argc, char **argv) {
@@ -55,7 +55,7 @@ struct Params {
             // assert(n_gpu_blocks > 0 && "Invalid # of device blocks!");
             assert(n_threads > 0 && "Invalid # of host threads!");
         } else {
-            assert((n_gpu_threads > 0 && n_gpu_blocks > 0 || n_threads > 0) && "Invalid # of host + device workers!");
+            //assert((n_gpu_threads > 0 && n_gpu_blocks > 0 || n_threads > 0) && "Invalid # of host + device workers!");
         }
     }
 
@@ -91,7 +91,7 @@ void init_data(float* h_in, float* h_out, const Params &p) {
 
 // Verification process -------------------------------------------------------
 void verify(float* h_in, float* h_out, int size) {
-    for(int i=0; i<p.size; i++)
+    for(int i=0; i<size; i++)
     {
         assert(h_in[i]*h_in[i]==h_out[i]);
     }
@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
     // Not using worklist for now
     //std::atomic_int * worklist = (std::atomic_int *)malloc(sizeof(std::atomic_int));
 
-    ALLOC_ERR(h_in, h_out, worklist);
+    ALLOC_ERR(h_in, h_out);
 
     // Initialize
     init_data(h_in, h_out, p);
@@ -137,10 +137,10 @@ int main(int argc, char **argv) {
 
         // Launch GPU threads
         // Kernel launch
-        if(p.n_gpu_blocks > 0) {
+        // if(p.n_gpu_blocks > 0) {
             hipStatus = call_gpukernel(n_elements_gpu, h_in, h_out);
             if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
-        }
+        // }
 
         // Launch CPU threads
         std::thread main_thread(run_cpu_threads, n_elements_cpu, n_elements_gpu, p.n_threads, h_in, h_out);
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
     // Free memory
     free(h_in);
     free(h_out);
-    free(worklist);
+    //free(worklist);
 
     if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
 
