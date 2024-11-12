@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
     // Not using worklist for now
     //std::atomic_int * worklist = (std::atomic_int *)malloc(sizeof(std::atomic_int));
 
-    ALLOC_ERR(h_in, h_out);
+    //ALLOC_ERR(h_in, h_out);
 
     // Initialize
     init_data(h_in, h_out, p);
