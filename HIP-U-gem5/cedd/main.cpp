@@ -273,6 +273,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, " System level barrier\n");
     hipDeviceSynchronize();
 
+    fprintf(stderr, "Comparison file (main.cpp): %s\n", p.comparison_file); 
     // Verify answer
     verify(all_out_frames, in_size, p.comparison_file, p.n_warmup + p.n_reps, rowsc, colsc, rowsc, colsc);
     fprintf(stderr, " Verified\n");
