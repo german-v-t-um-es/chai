@@ -39,6 +39,7 @@
 inline int compare_output(unsigned char **all_out_frames, int image_size, const char *file_name, int num_frames, int rowsc, int colsc, int rowsc_, int colsc_) {
 
     int count_error = 0;
+    fprintf(stderr, "Comparison file: %s\n", file_name); 
     for(int i = 0; i < num_frames; i++) {
 
         // Compare to output file

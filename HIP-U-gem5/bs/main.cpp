@@ -178,12 +178,6 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
-    // if(p.roi){
-    //     // Declaration of ROI
-    //     simInit();
-    //     printf("Obtaining stats of ROI\n");
-    // }
-
     // Allocate
     int in_size   = (p.in_size_i + 1) * (p.in_size_j + 1) * sizeof(XYZ);
     int out_size  = p.out_size_i * p.out_size_j * sizeof(XYZ);
@@ -203,11 +197,6 @@ int main(int argc, char **argv) {
     // Initialize
     read_input(h_in, p);
     hipDeviceSynchronize(); // assuming that we need it
-    
-    // if(p.roi){
-    //     // Beginning of ROI
-    //     simBeginRegionOfInterest();
-    // }  
 
     // Call to exitSimLoop to begin ROI
     m5_roi_begin();
@@ -237,11 +226,6 @@ int main(int argc, char **argv) {
 
     // Call to exitSimLoop to end ROI
     m5_roi_end();
-
-    // if(p.roi){
-    //     // Ending of ROI
-    //     simEndRegionOfInterest();
-    // }
 
     // Verify answer
     verify(h_in, h_out, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);

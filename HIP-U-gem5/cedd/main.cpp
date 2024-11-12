@@ -59,7 +59,7 @@ struct Params {
         device          = 0;
         n_gpu_threads   = 16;
         // Changing number of threads for debug
-        n_threads       = 2;
+        n_threads       = 3;
         // Changing number of reps to 1 to debug (1/10)
         n_warmup        = 0;
         n_reps          = 1;
@@ -125,6 +125,7 @@ struct Params {
 // Input Data -----------------------------------------------------------------
 void read_input(unsigned char** all_gray_frames, int &rowsc, int &colsc, int &in_size, const Params &p) {
 
+    fprintf(stderr, "Input file: %s\n", p.file_name); 
     for(int task_id = 0; task_id < p.n_warmup + p.n_reps; task_id++) {
 
         char FileName[100];
