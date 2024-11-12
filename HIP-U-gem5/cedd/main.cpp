@@ -59,7 +59,7 @@ struct Params {
         device          = 0;
         n_gpu_threads   = 16;
         // Changing number of threads for debug
-        n_threads       = 1;
+        n_threads       = 2;
         // Changing number of reps to 1 to debug (1/10)
         n_warmup        = 0;
         n_reps          = 1;

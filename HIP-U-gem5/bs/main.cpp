@@ -41,7 +41,7 @@
 #include <thread>
 #include <assert.h>
 
-// Definition of ROI
+// ROI incorporation
 #include <gem5/m5ops.h>
 
 // Params ---------------------------------------------------------------------
