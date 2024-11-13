@@ -94,9 +94,10 @@ void init_data(float* h_in, float* h_out, const Params &p) {
 void verify(float* h_in, float* h_out, int size) {
     for(int i=0; i<size; i++)
     {
-        fprintf(stderr, "%d,%f,%f\n", i, h_in[i]*h_in[i], h_out[i]);
+        //fprintf(stderr, "%d,%f,%f\n", i, h_in[i]*h_in[i], h_out[i]);
         assert(h_in[i]*h_in[i]==h_out[i]);
     }
+    printf("Verification Passed\n");
 }
 
 // Main -----------------------------------------------------------------------
@@ -146,12 +147,10 @@ int main(int argc, char **argv) {
 
     // Verify answer
     verify(h_in, h_out, p.size);
-    printf("Verification Passed\n");
 
     // Free memory
     free(h_in);
     free(h_out);
-    //free(worklist);
 
     if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
 
