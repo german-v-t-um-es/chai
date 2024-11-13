@@ -94,7 +94,7 @@ void init_data(float* h_in, float* h_out, const Params &p) {
 void verify(float* h_in, float* h_out, int size) {
     for(int i=0; i<size; i++)
     {
-        fprintf(stderr, "%d,%d,%d", i, h_in[i]*h_in[i], h_out[i]);
+        fprintf(stderr, "%d,%d,%d\n", i, h_in[i]*h_in[i], h_out[i]);
         assert(h_in[i]*h_in[i]==h_out[i]);
     }
 }
