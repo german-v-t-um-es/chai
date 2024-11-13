@@ -15,6 +15,7 @@ void run_cpu_threads(int size, int elements_gpu, int n_threads, float* h_in, flo
             if(k+1==n_threads)
                 elements_thread += size%n_threads;
             for(int i=elements_thread; i<elements_thread; i++){
+                fprintf(stderr, "Calculating %d element\n", offset+i);
                 h_out[offset+i]=h_in[offset+i]*h_in[offset+i];
             }
         }));
