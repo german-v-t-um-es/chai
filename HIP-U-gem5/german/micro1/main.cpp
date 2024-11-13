@@ -25,7 +25,7 @@ struct Params {
         n_warmup      = 0;
         n_reps        = 1;
         alpha         = 0.1;
-        size          = 1000000000;
+        size          = 1000000;
         int opt;
         while((opt = getopt(argc, argv, "hd:t:w:r:a:s:")) >= 0) {
             switch(opt) {
@@ -75,7 +75,7 @@ struct Params {
                 "\n              NOTE: Dynamic partitioning used when <A> is not between 0.0 and 1.0"
                 "\n"
                 "\nBenchmark-specific options:"
-                "\n    -s <S>    number of elements to process (default=1000000000)"
+                "\n    -s <S>    number of elements to process (default=1000000)"
                 "\n");
     }
 };
@@ -84,6 +84,7 @@ struct Params {
 void init_data(float* h_in, float* h_out, const Params &p) {
     for(int i=0; i<p.size; i++)
     {
+        fprintf(stderr, "Iteration %d", i);
         h_in[i] = i+3.14/12;
         h_out[i] = 0.0;
     }
