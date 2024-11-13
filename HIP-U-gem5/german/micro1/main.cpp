@@ -126,6 +126,7 @@ int main(int argc, char **argv) {
     //ALLOC_ERR(h_in, h_out);
 
     // Initialize
+    fprintf(stderr, "Initializing data\n");
     init_data(h_in, h_out, p);
     hipDeviceSynchronize(); // assuming that we need it
 
