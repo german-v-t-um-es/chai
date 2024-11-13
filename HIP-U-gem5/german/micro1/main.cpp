@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
     hipError_t  hipStatus;
 
     // Allocate
-    int array_size =  p.size * sizeof(float);
+    int array_size =  (p.size+1) * sizeof(float);
     // Pointers for the CPU and the GPU
     float*  h_in  = (float*) malloc(array_size);
     float*  h_out = (float*) malloc(array_size);
