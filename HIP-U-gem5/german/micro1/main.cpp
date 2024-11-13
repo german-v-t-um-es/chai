@@ -84,7 +84,7 @@ struct Params {
 void init_data(float* h_in, float* h_out, const Params &p) {
     for(int i=0; i<p.size; i++)
     {
-        fprintf(stderr, "Iteration %d", i);
+        //fprintf(stderr, "Iteration %d", i);
         h_in[i] = i+3.14/12;
         h_out[i] = 0.0;
     }
@@ -94,6 +94,7 @@ void init_data(float* h_in, float* h_out, const Params &p) {
 void verify(float* h_in, float* h_out, int size) {
     for(int i=0; i<size; i++)
     {
+        fprintf(stderr, "%d,%d,%d", i, h_in[i]*h_in[i], h_out[i]);
         assert(h_in[i]*h_in[i]==h_out[i]);
     }
 }
@@ -113,18 +114,6 @@ int main(int argc, char **argv) {
     int n_elements_gpu = p.size * p.alpha;
     int n_elements_cpu = p.size - n_elements_gpu;
     
-    // int n_tasks_i = divceil(p.out_size_i, p.n_gpu_threads);
-    // int n_tasks_j = divceil(p.out_size_j, p.n_gpu_threads);
-    // int n_tasks   = n_tasks_i * n_tasks_j;
-    
-    // Pointers for the GPU (why needed?) 
-    // XYZ * d_in   = h_in;
-    // XYZ * d_out  = h_out;
-    // Not using worklist for now
-    //std::atomic_int * worklist = (std::atomic_int *)malloc(sizeof(std::atomic_int));
-    //ALLOC_ERR(h_in, h_out);
-    hipDeviceSynchronize();
-
     // Initialize
     fprintf(stderr, "Initializing data\n");
     init_data(h_in, h_out, p);
