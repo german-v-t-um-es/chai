@@ -85,7 +85,7 @@ void init_data(float* h_in, float* h_out, const Params &p) {
     for(int i=0; i<p.size; i++)
     {
         h_in[i] = i+3.14/12;
-        h_out[i] = 0;
+        h_out[i] = 0.0;
     }
 }
 
