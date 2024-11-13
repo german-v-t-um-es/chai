@@ -111,8 +111,8 @@ int main(int argc, char **argv) {
     float*  h_in  = (float*) malloc(array_size);
     float*  h_out = (float*) malloc(array_size);
     // Division of the elements for each device (CPU, GPU)
-    int n_elements_gpu = p.size * p.alpha;
-    int n_elements_cpu = p.size - n_elements_gpu;
+    int n_elements_cpu = p.size * p.alpha;
+    int n_elements_gpu = p.size - n_elements_gpu;
     fprintf(stderr, "GPU elements to process: %d\n", n_elements_gpu);
     fprintf(stderr, "CPU elements to process: %d\n", n_elements_cpu);
     
