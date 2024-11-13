@@ -105,25 +105,24 @@ int main(int argc, char **argv) {
 
     // Allocate
     int array_size =  p.size * sizeof(float);
+    // Pointers for the CPU and the GPU
+    float*  h_in  = (float*) malloc(array_size);
+    float*  h_out = (float*) malloc(array_size);
+    // Division of the elements for each device (CPU, GPU)
+    int n_elements_gpu = p.size * p.alpha;
+    int n_elements_cpu = p.size - n_elements_gpu;
     
     // int n_tasks_i = divceil(p.out_size_i, p.n_gpu_threads);
     // int n_tasks_j = divceil(p.out_size_j, p.n_gpu_threads);
     // int n_tasks   = n_tasks_i * n_tasks_j;
-
-    int n_elements_gpu = p.size * p.alpha;
-    int n_elements_cpu = p.size - n_elements_gpu;
-    
-    // Pointers for the CPU
-    float*  h_in  = (float*) malloc(array_size);
-    float*  h_out = (float*) malloc(array_size);
     
     // Pointers for the GPU (why needed?) 
     // XYZ * d_in   = h_in;
     // XYZ * d_out  = h_out;
     // Not using worklist for now
     //std::atomic_int * worklist = (std::atomic_int *)malloc(sizeof(std::atomic_int));
-
     //ALLOC_ERR(h_in, h_out);
+    hipDeviceSynchronize();
 
     // Initialize
     fprintf(stderr, "Initializing data\n");
