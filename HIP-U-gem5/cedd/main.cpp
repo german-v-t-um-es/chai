@@ -59,7 +59,7 @@ struct Params {
         device          = 0;
         n_gpu_threads   = 16;
         // Changing number of threads for debug
-        n_threads       = 3;
+        n_threads       = 4;
         // Changing number of reps to 1 to debug (1/10)
         n_warmup        = 0;
         n_reps          = 1;
@@ -154,6 +154,8 @@ int main(int argc, char **argv) {
 
     Params      p(argc, argv);
     hipError_t  hipStatus;
+
+    fprintf(stderr, "Comparison file (main.cpp): %s\n", p.comparison_file); 
 
     // Allocate
     const int n_frames = p.n_warmup + p.n_reps;
