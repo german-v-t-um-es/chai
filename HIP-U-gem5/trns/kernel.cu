@@ -34,7 +34,7 @@
  *
  */
 
-#define _CUDA_COMPILER_
+#define GPU_COMPILE
 
 #include "support/common.h"
 
@@ -49,22 +49,15 @@ __global__ void PTTWAC_soa_asta(int A, int B, int b, T *input, int *finished, in
     int       m   = A * B - 1;
 
     if(tid == 0) // Dynamic fetch
-#ifdef CUDA_8_0
         gid_[0] = atomicAdd(&head[0], 1); //atomicAdd_system(&head[0], 1);
-#else
-        gid_[0] = atomicAdd(&head[0], 1);
-#endif
+
     __syncthreads();
 
     while(gid_[0] < m) {
         int next_in_cycle = (gid_[0] * A) - m * (gid_[0] / B);
         if(next_in_cycle == gid_[0]) {
             if(tid == 0) // Dynamic fetch
-#ifdef CUDA_8_0
                 gid_[0] = atomicAdd(&head[0], 1); //atomicAdd_system(&head[0], 1);
-#else
-                gid_[0] = atomicAdd(&head[0], 1);
-#endif
             __syncthreads();
             continue;
         }
@@ -83,12 +76,7 @@ __global__ void PTTWAC_soa_asta(int A, int B, int b, T *input, int *finished, in
             data4 = input[gid_[0] * b + i];
 
         if(tid == 0) {
-//make sure the read is not cached
-#ifdef CUDA_8_0
             done[0] = atomicAdd(&finished[gid_[0]], 0); //atomicAdd_system(&finished[gid_[0]], 0);
-#else
-            done[0] = atomicAdd(&finished[gid_[0]], 0);
-#endif
         }
         __syncthreads();
 
@@ -108,11 +96,7 @@ __global__ void PTTWAC_soa_asta(int A, int B, int b, T *input, int *finished, in
                 backup4 = input[next_in_cycle * b + i];
 
             if(tid == 0) {
-#ifdef CUDA_8_0
                 done[0] = atomicExch(&finished[next_in_cycle], (int)1); //atomicExch_system(&finished[next_in_cycle], (int)1);
-#else
-                done[0] = atomicExch(&finished[next_in_cycle], (int)1);
-#endif
             }
             __syncthreads();
 
@@ -145,11 +129,7 @@ __global__ void PTTWAC_soa_asta(int A, int B, int b, T *input, int *finished, in
         }
 
         if(tid == 0) // Dynamic fetch
-#ifdef CUDA_8_0
             gid_[0] = atomicAdd(&head[0], 1); //atomicAdd_system(&head[0], 1);
-#else
-            gid_[0] = atomicAdd(&head[0], 1);
-#endif
         __syncthreads();
     }
 }
