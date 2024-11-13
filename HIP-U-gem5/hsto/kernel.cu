@@ -34,7 +34,7 @@
  *
  */
 
-#define _CUDA_COMPILER_
+#define GPU_COMPILE
 
 #include "support/common.h"
 
@@ -94,8 +94,7 @@ hipError_t call_Histogram_kernel(int blocks, int threads, int size, int bins, in
     unsigned int *data, unsigned int *histo, int l_mem_size){
     dim3 dimGrid(blocks);
     dim3 dimBlock(threads);
-    hipLaunchKernelGGL(Histogram_kernel, dim3(dimGrid), dim3(dimBlock), l_mem_size, 0, size, bins, cpu_bins, 
-        data, histo);
+    hipLaunchKernelGGL(Histogram_kernel, dim3(dimGrid), dim3(dimBlock), l_mem_size, 0, size, bins, cpu_bins, data, histo);
     hipError_t err = hipGetLastError();
     return err;
 }
