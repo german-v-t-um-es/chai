@@ -2,8 +2,8 @@
 #include "kernel.h"
 
 __global__ void kernel(int size, float* d_in, float* d_out){
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
+    int idx = blockIdx.x * blockDim.x * blockDim.y + threadIdx.y * blockDim.x + threadIdx.x;
+    
     if (idx < size) {
         d_out[idx] = d_in[idx] * d_in[idx];
     }

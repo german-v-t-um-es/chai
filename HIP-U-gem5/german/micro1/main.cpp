@@ -113,6 +113,8 @@ int main(int argc, char **argv) {
     // Division of the elements for each device (CPU, GPU)
     int n_elements_gpu = p.size * p.alpha;
     int n_elements_cpu = p.size - n_elements_gpu;
+    fprintf(stderr, "GPU elements to process: %d\n", n_elements_gpu);
+    fprintf(stderr, "CPU elements to process: %d\n", n_elements_cpu);
     
     // Initialize
     fprintf(stderr, "Initializing data\n");
