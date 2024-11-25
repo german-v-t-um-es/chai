@@ -192,7 +192,8 @@ int main(int argc, char **argv) {
         }
 
         // Call to exitSimLoop to begin ROI
-        m5_roi_begin();
+        if(rep==1)
+            m5_roi_begin();
 
         // Kernel launch
         if(p.n_gpu_blocks > 0) {
@@ -209,8 +210,9 @@ int main(int argc, char **argv) {
         hipDeviceSynchronize();
         main_thread.join();
 
-        // Call to exitSimLoop to end ROI
-        m5_roi_end();
+        // Call to exitSimLoop to begin ROI
+        if(rep==1)
+            m5_roi_end();
     }
 
     // Verify answer

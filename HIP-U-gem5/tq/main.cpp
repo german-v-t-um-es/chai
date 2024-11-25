@@ -199,7 +199,7 @@ int main(int argc, char **argv) {
     for(int rep = 0; rep < p.n_reps + p.n_warmup; rep++) {
         if(rep==1)
             printf("Warmup Iteration Finished\n");
-            
+
         // Reset
         memcpy(task_pool, task_pool_backup, p.pool_size * sizeof(task_t));
         memset((void *)data, 0, p.pool_size * p.n_gpu_threads * sizeof(int));
@@ -217,7 +217,8 @@ int main(int argc, char **argv) {
         int offset     = 0;
 
         // Call to exitSimLoop to begin ROI
-        m5_roi_begin();
+        if(rep==1)
+            m5_roi_begin();
 
         std::thread main_thread(run_cpu_threads, p.n_threads, task_queues, n_tasks_in_queue, n_written_tasks,
             n_consumed_tasks, task_pool, data, p.queue_size, &offset, &last_queue, &num_tasks, p.queue_size,
@@ -231,8 +232,9 @@ int main(int argc, char **argv) {
         hipDeviceSynchronize();
         main_thread.join();
 
-        // Call to exitSimLoop to end ROI
-        m5_roi_end();
+        // Call to exitSimLoop to begin ROI
+        if(rep==1)
+            m5_roi_end();
     }
 
     // Verify answer
