@@ -42,8 +42,8 @@
 #include <thread>
 #include <assert.h>
 
-// Definition of ROI
-#include "../m5iface/m5iface.h"
+// ROI incorporation
+#include <gem5/m5ops.h>
 
 // Params ---------------------------------------------------------------------
 struct Params {
@@ -58,22 +58,20 @@ struct Params {
     int   in_size;
     int   compaction_factor;
     int   remove_value;
-    int   roi;
 
     Params(int argc, char **argv) {
         device            = 0;
         n_gpu_threads     = 256;
         n_gpu_blocks      = 8;
         n_threads         = 4;
-        n_warmup          = 0;
+        n_warmup          = 1;
         n_reps            = 1;
         alpha             = 0.1;
         in_size           = 1048;
         compaction_factor = 50;
         remove_value      = 0;
-        roi               = 0;
         int opt;
-        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:a:n:c:o:")) >= 0) {
+        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:a:n:c:")) >= 0) {
             switch(opt) {
             case 'h':
                 usage();
@@ -88,7 +86,6 @@ struct Params {
             case 'a': alpha             = atof(optarg); break;
             case 'n': in_size           = atoi(optarg); break;
             case 'c': compaction_factor = atoi(optarg); break;
-            case 'o': roi = 1; break;
             default:
                 fprintf(stderr, "\nUnrecognized option!\n");
                 usage();
@@ -159,12 +156,6 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t hipStatus;
 
-    if(p.roi){
-        // Declaration of ROI
-        simInit();
-        printf("Obtaining stats of ROI\n"); //apu_se.py
-    }
-
     // Allocate buffers
     const int n_tasks     = divceil(p.in_size, p.n_gpu_threads * REGS);
     const int n_tasks_cpu = n_tasks * p.alpha;
@@ -187,13 +178,10 @@ int main(int argc, char **argv) {
     h_flags[0].store(1);
     memcpy(h_in_backup, h_in_out, p.in_size * sizeof(T)); // Backup for reuse across iterations
 
-    if(p.roi){
-        // Beginning of ROI
-        simBeginRegionOfInterest();
-    }
-
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; rep++) {
+        if(rep==1)
+            printf("Warmup Iteration Finished\n");
 
         // Reset
         memcpy(h_in_out, h_in_backup, p.in_size * sizeof(T));
@@ -203,8 +191,10 @@ int main(int argc, char **argv) {
             worklist[0].store(0);
         }
 
+        // Call to exitSimLoop to begin ROI
+        m5_roi_begin();
+
         // Kernel launch
-        fprintf(stderr, "launching GPU\n");
         if(p.n_gpu_blocks > 0) {
             hipStatus = call_StreamCompaction_kernel(p.n_gpu_blocks, p.n_gpu_threads, p.in_size, p.remove_value, n_tasks, p.alpha,
                 d_in_out, d_in_out, (int*)d_flags,
@@ -213,23 +203,17 @@ int main(int argc, char **argv) {
         }
 
         // Launch CPU threads
-        fprintf(stderr, "launching CPU\n");
         std::thread main_thread(run_cpu_threads, h_in_out, h_in_out, h_flags, p.in_size, p.remove_value, p.n_threads,
             p.n_gpu_threads, n_tasks, p.alpha,worklist);
 
         hipDeviceSynchronize();
-        fprintf(stderr, "HIP device Synchronize done\n");
         main_thread.join();
-        fprintf(stderr, "Iteration %d finished\n", rep);
-    }
 
-    if(p.roi){
-        // Ending of ROI
-        simEndRegionOfInterest();
+        // Call to exitSimLoop to end ROI
+        m5_roi_end();
     }
 
     // Verify answer
-    fprintf(stderr, "Verifying\n");
     verify(h_in_out, h_in_backup, p.in_size, p.remove_value, (p.in_size * p.compaction_factor) / 100);
 
     // Free memory
@@ -237,7 +221,7 @@ int main(int argc, char **argv) {
     free(h_flags);
     free(worklist);
 
-    if(hipStatus != hipSuccess) { fprintf(stderr, "CUDA error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
+    if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
     free(h_in_backup);
     hipDeviceSynchronize();
 

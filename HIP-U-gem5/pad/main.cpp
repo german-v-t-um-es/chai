@@ -42,6 +42,9 @@
 #include <thread>
 #include <assert.h>
 
+// ROI incorporation
+#include <gem5/m5ops.h>
+
 // Params ---------------------------------------------------------------------
 struct Params {
 
@@ -61,7 +64,7 @@ struct Params {
         n_gpu_threads = 256;
         n_gpu_blocks  = 8;
         n_threads     = 4;
-        n_warmup      = 0;
+        n_warmup      = 1;
         n_reps        = 1;
         alpha         = 0.1;
         m             = 1000;
@@ -174,6 +177,8 @@ int main(int argc, char **argv) {
 
     // Loop over main kernel
     for(int rep = 0; rep < p.n_warmup + p.n_reps; rep++) {
+        if(rep==1)
+            printf("Warmup Iteration Finished\n");
 
         // Reset
         memcpy(h_in_out, h_in_backup, in_size * sizeof(T));
@@ -182,6 +187,9 @@ int main(int argc, char **argv) {
         if(p.alpha < 0.0 || p.alpha > 1.0) { // Dynamic partitioning
             worklist[0].store(0);
         }
+
+        // Call to exitSimLoop to begin ROI
+        m5_roi_begin();
 
         // Kernel launch
         if(p.n_gpu_blocks > 0) {
@@ -196,6 +204,9 @@ int main(int argc, char **argv) {
 
         hipDeviceSynchronize();
         main_thread.join();
+
+        // Call to exitSimLoop to end ROI
+        m5_roi_end();
     }
 
     // Verify answer

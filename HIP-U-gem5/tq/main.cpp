@@ -42,8 +42,8 @@
 #include <thread>
 #include <assert.h>
 
-// Definition of ROI
-#include "../m5iface/m5iface.h"
+// ROI incorporation
+#include <gem5/m5ops.h>
 
 // Params ---------------------------------------------------------------------
 struct Params {
@@ -59,23 +59,21 @@ struct Params {
     int         pool_size;
     int         queue_size;
     int         iterations;
-    int         roi;
 
     Params(int argc, char **argv) {
         device        = 0;
         n_gpu_threads = 64;
         n_gpu_blocks  = 320;
-        n_threads     = 1;
-        n_warmup      = 0;
+        n_threads     = 4;
+        n_warmup      = 1;
         n_reps        = 1;
         file_name     = "/home/germanvt/benchmarks/chai/HIP-U-gem5/tq/input/patternsNP100NB512FB10.txt";
         pattern       = 1;
         pool_size     = 3200;
         queue_size    = 320;
         iterations    = 50;
-        roi           = 0;
         int opt;
-        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:f:k:s:q:n:o:")) >= 0) {
+        while((opt = getopt(argc, argv, "hd:i:g:t:w:r:f:k:s:q:n:")) >= 0) {
             switch(opt) {
             case 'h':
                 usage();
@@ -92,7 +90,6 @@ struct Params {
             case 's': pool_size     = atoi(optarg); break;
             case 'q': queue_size    = atoi(optarg); break;
             case 'n': iterations    = atoi(optarg); break;
-            case 'o': roi = 1; break;
             default:
                 fprintf(stderr, "\nUnrecognized option!\n");
                 usage();
@@ -172,12 +169,6 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
-    if(p.roi){
-        // Declaration of ROI
-        simInit();
-        printf("Obtaining stats of ROI\n");
-    }
-
     // Allocate
     int *   pattern = (int *)malloc(p.pool_size * sizeof(int));
     task_t *task_pool = (task_t *)malloc(p.pool_size * sizeof(task_t));
@@ -205,13 +196,10 @@ int main(int argc, char **argv) {
     }
     memcpy(task_pool_backup, task_pool, p.pool_size * sizeof(task_t));
 
-    if(p.roi){
-        // Beginning of ROI
-        simBeginRegionOfInterest();
-    }  
-
     for(int rep = 0; rep < p.n_reps + p.n_warmup; rep++) {
-
+        if(rep==1)
+            printf("Warmup Iteration Finished\n");
+            
         // Reset
         memcpy(task_pool, task_pool_backup, p.pool_size * sizeof(task_t));
         memset((void *)data, 0, p.pool_size * p.n_gpu_threads * sizeof(int));
@@ -228,6 +216,9 @@ int main(int argc, char **argv) {
         int last_queue = 0;
         int offset     = 0;
 
+        // Call to exitSimLoop to begin ROI
+        m5_roi_begin();
+
         std::thread main_thread(run_cpu_threads, p.n_threads, task_queues, n_tasks_in_queue, n_written_tasks,
             n_consumed_tasks, task_pool, data, p.queue_size, &offset, &last_queue, &num_tasks, p.queue_size,
             p.pool_size, p.n_gpu_blocks);
@@ -240,11 +231,8 @@ int main(int argc, char **argv) {
         hipDeviceSynchronize();
         main_thread.join();
 
-    }
-
-    if(p.roi){
-        // Ending of ROI
-        simEndRegionOfInterest();
+        // Call to exitSimLoop to end ROI
+        m5_roi_end();
     }
 
     // Verify answer
