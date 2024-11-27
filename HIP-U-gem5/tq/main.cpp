@@ -64,7 +64,7 @@ struct Params {
         device        = 0;
         n_gpu_threads = 64;
         n_gpu_blocks  = 320;
-        n_threads     = 1;
+        n_threads     = 2;
         n_warmup      = 1;
         n_reps        = 1;
         file_name     = "gem5-resources/src/gpu/chai/HIP-U-gem5/tq/input/patternsNP100NB512FB10.txt";
