@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
-    printf("Number of CPU threads used: %d", n_threads);
+    printf("Number of CPU threads used: %d", p.n_threads);
 
     // Allocate
     int *   pattern = (int *)malloc(p.pool_size * sizeof(int));
