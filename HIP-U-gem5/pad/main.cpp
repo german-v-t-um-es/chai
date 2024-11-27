@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
-    printf("Number of CPU threads used: %d", p.n_threads);
+    printf("Number of CPU threads used: %d\n", p.n_threads);
 
     // Allocate
     const int in_size     = p.m * (p.n + p.pad);
