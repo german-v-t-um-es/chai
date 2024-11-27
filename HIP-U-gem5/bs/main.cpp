@@ -172,6 +172,8 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
+    printf("Number of CPU threads used: %d", n_threads);
+
     // Allocate
     int in_size   = (p.in_size_i + 1) * (p.in_size_j + 1) * sizeof(XYZ);
     int out_size  = p.out_size_i * p.out_size_j * sizeof(XYZ);

@@ -169,6 +169,8 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
+    printf("Number of CPU threads used: %d", n_threads);
+
     // Allocate
     int *   pattern = (int *)malloc(p.pool_size * sizeof(int));
     task_t *task_pool = (task_t *)malloc(p.pool_size * sizeof(task_t));

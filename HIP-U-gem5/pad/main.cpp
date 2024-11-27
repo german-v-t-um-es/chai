@@ -153,6 +153,8 @@ int main(int argc, char **argv) {
     const Params p(argc, argv);
     hipError_t  hipStatus;
 
+    printf("Number of CPU threads used: %d", n_threads);
+
     // Allocate
     const int in_size     = p.m * (p.n + p.pad);
     const int n_tasks     = divceil(in_size, p.n_gpu_threads * REGS);
