@@ -63,7 +63,7 @@ struct Params {
         device        = 0;
         n_gpu_threads = 256;
         n_gpu_blocks  = 8;
-        n_threads     = 4;
+        n_threads     = 1;
         n_warmup      = 1;
         n_reps        = 1;
         alpha         = 0.1;
