@@ -40,6 +40,7 @@
 #include <thread>
 #include <algorithm>
 #include <vector>
+#define PRINT
 
 //----------------------------------------------------------------------------
 // CPU: Host enqueue task
