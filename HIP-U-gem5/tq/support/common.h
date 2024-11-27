@@ -42,7 +42,7 @@
 
 #define NUM_TASK_QUEUES 2
 
-#define PRINT 1
+#define PRINT 0
 
 typedef struct {
     int id;
