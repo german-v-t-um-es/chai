@@ -230,6 +230,7 @@ int main(int argc, char **argv) {
         if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
 
         hipDeviceSynchronize();
+        printf("Waiting for threads...\n");
         main_thread.join();
 
         // Call to exitSimLoop to begin ROI
