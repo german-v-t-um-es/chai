@@ -83,7 +83,6 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
 ///////////////// Run CPU worker threads /////////////////////////////////
     std::vector<std::thread> cpu_threads;
     for(int i = 0; i < n_threads; i++) {
-
         cpu_threads.push_back(std::thread([=]() {
 
             int maxConcurrentBlocks = n_work_groups;
