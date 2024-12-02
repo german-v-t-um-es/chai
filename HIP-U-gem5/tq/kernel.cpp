@@ -83,7 +83,7 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
 ///////////////// Run CPU worker threads /////////////////////////////////
     std::vector<std::thread> cpu_threads;
     for(int i = 0; i < n_threads; i++) {
-        #pragma GCC optimize ("no-unroll-loops")
+        //#pragma GCC optimize ("no-unroll-loops")
         cpu_threads.push_back(std::thread([=]() {
 
             int maxConcurrentBlocks = n_work_groups;
@@ -115,5 +115,5 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
         }));
     }
 
-    std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { t.join(); });
+    std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { printf("Hilo finalizado\n") t.join(); });
 }
