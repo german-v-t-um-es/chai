@@ -238,6 +238,7 @@ int main(int argc, char **argv) {
         // Call to exitSimLoop to begin ROI
         if(rep==1)
             m5_roi_end();
+        printf("Finished Iteration\n");
     }
 
     // Verify answer
