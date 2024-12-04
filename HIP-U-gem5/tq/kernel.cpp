@@ -86,7 +86,7 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
         //#pragma GCC optimize ("no-unroll-loops")
         cpu_threads.push_back(std::thread([=]() {
             printf("\tCreando Hilo %d\n", i);
-            fflush();
+            fflush(stdout);
 
             int maxConcurrentBlocks = n_work_groups;
 
@@ -115,7 +115,7 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
                 n_task_in_queue, last_queue, n_tasks, gpu_queue_size, offset);
         
             printf("Hilo %d ha terminado de crear tareas\n", i);
-            fflush();
+            fflush(stdout);
         }));
     }
 
