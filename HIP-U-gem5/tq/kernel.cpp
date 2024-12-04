@@ -107,12 +107,13 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
                 (task_pool + i)->id = -1;
                 (task_pool + i)->op = SIGNAL_STOP_KERNEL;
             }
-            
             *n_tasks = maxConcurrentBlocks;
             *offset    = 0;
             // Insert stop tasks in queue
             host_insert_tasks(queues, task_pool, n_consumed_tasks, n_written_tasks,
                 n_task_in_queue, last_queue, n_tasks, gpu_queue_size, offset);
+        
+            printf("Hilo %d ha terminado de crear tareas\n", i);
         }));
     }
 
