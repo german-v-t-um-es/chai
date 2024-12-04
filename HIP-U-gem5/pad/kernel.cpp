@@ -49,8 +49,9 @@ void run_cpu_threads(T *matrix_out, T *matrix, std::atomic_int *flags, int n, in
     for(int i = 0; i < n_threads; i++) {
     
         cpu_threads.push_back(std::thread([=]() {
-            printf("\tCreando Hilo %d\n", i);
-
+#ifdef DEBUG
+            printf("\tCreating thread %d\n", i);
+#endif
             Partitioner p = partitioner_create(n_tasks, alpha, i, n_threads, worklist);
 
             const int matrix_size       = m * (n + pad);
@@ -91,8 +92,15 @@ void run_cpu_threads(T *matrix_out, T *matrix, std::atomic_int *flags, int n, in
                     pos--;
                 }
             }
-            printf("Hilo %d ha terminado\n", i);
+#ifdef DEBUG
+            printf("\tThread %d finished\n", i);
+#endif
         }));
     }
-    std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { printf("Hilo finalizado\n"); t.join(); });
+    std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { 
+#ifdef DEBUG 
+        printf("Thread joined\n"); 
+#endif 
+        t.join();
+    });
 }
