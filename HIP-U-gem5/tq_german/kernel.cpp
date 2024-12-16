@@ -52,18 +52,9 @@ void host_insert_tasks(task_t *queues, task_t *task_pool, std::atomic_int *n_con
     int n_remaining_tasks     = *n_tasks;
     int n_tasks_to_write_next = (n_remaining_tasks > gpu_queue_size) ? gpu_queue_size : n_remaining_tasks;
     *n_tasks                  = n_tasks_to_write_next;
-#if PRINT
-    printf("Inserting Tasks (%d to insert)\t \n", n_tasks_to_write_next);
-#endif
+
     do {
-#if PRINT
-        printf("Loop iteration... i = %d, consumed=%d, written=%d\n", i, n_consumed_tasks[i].load(),
-            n_written_tasks[i].load());
-#endif
         if(n_consumed_tasks[i].load() == n_written_tasks[i].load()) {
-#if PRINT
-            printf("Inserting Tasks... %d (%d) in queue %d\n", n_remaining_tasks, *n_tasks, i);
-#endif
             // Insert tasks in queue i
             memcpy(&queues[i * gpu_queue_size], &task_pool[(*offset) + n_total_tasks - n_remaining_tasks],
                 (*n_tasks) * sizeof(task_t));
@@ -89,10 +80,6 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
     std::atomic_int *n_written_tasks, std::atomic_int *n_consumed_tasks, task_t *task_pool,
     int *data, int gpu_queue_size, int *offset, int *last_queue, int *n_tasks, int tpi, int poolSize,
     int n_work_groups) {
-///////////////// Run CPU worker threads /////////////////////////////////
-#if PRINT
-    printf("Starting 1 CPU thread\n");
-#endif
 
     std::vector<std::thread> cpu_threads;
     for(int i = 0; i < n_threads; i++) {
@@ -105,16 +92,6 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
             host_insert_tasks(queues, task_pool, n_consumed_tasks, n_written_tasks,
                 n_task_in_queue, last_queue, n_tasks, gpu_queue_size, offset);
             *offset += tpi;
-#if PRINT
-            printf("\nTask inserted...\n");
-            for(int i = 0; i < NUM_TASK_QUEUES; i++) {
-                int task_in_queue = (n_task_in_queue + i)->load();
-                int written       = (n_written_tasks + i)->load();
-                int consumed      = (n_consumed_tasks + i)->load();
-                printf("Queue = %i, written = %i, task_in_queue = %i, consumed = %i, offset = %i\n", i, written,
-                    task_in_queue, consumed, *offset);
-            }
-#endif
 
             while(poolSize > *offset) {
                 *n_tasks = tpi;
@@ -122,17 +99,8 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
                 host_insert_tasks(queues, task_pool, n_consumed_tasks, n_written_tasks,
                     n_task_in_queue, last_queue, n_tasks, gpu_queue_size, offset);
                 *offset += tpi;
-#if PRINT
-                printf("\nTask inserted (second loop)...\n");
-                for(int i = 0; i < NUM_TASK_QUEUES; i++) {
-                    int task_in_queue = (n_task_in_queue + i)->load();
-                    int written       = (n_written_tasks + i)->load();
-                    int consumed      = (n_consumed_tasks + i)->load();
-                    printf("Queue = %i, written = %i, task_in_queue = %i, consumed = %i, offset = %i\n", i, written,
-                        task_in_queue, consumed, *offset);
-                }
-#endif
             }
+
             // Create stop tasks
             for(int i = 0; i < maxConcurrentBlocks; i++) {
                 (task_pool + i)->id = -1;
@@ -143,16 +111,6 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
             // Insert stop tasks in queue
             host_insert_tasks(queues, task_pool, n_consumed_tasks, n_written_tasks,
                 n_task_in_queue, last_queue, n_tasks, gpu_queue_size, offset);
-#if PRINT
-            for(int i = 0; i < NUM_TASK_QUEUES; i++) {
-                int task_in_queue = (n_task_in_queue + i)->load();
-                int written       = (n_written_tasks + i)->load();
-                int consumed      = (n_consumed_tasks + i)->load();
-                printf("STOP TASKS -> Queue = %i, written = %i, task_in_queue = %i, consumed = %i, offset = %i\n",
-                    i, written, task_in_queue, consumed, *offset);
-            }
-#endif
-
         }));
     }
 
