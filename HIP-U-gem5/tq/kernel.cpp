@@ -119,5 +119,5 @@ void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *n_task_in_q
         }));
     }
 
-    std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { printf("Hilo finalizado\n"); t.join(); });
+    std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { printf("Hilo finalizado\n"); fflush(stdout); t.join(); });
 }

@@ -1,0 +1,167 @@
+#include "kernel.h"
+
+#include <unistd.h>
+#include <thread>
+#include <assert.h>
+
+// This benchmark is going to compute the power of 2 of 1000000000 fp elements
+
+// ROI incorporation
+#include <gem5/m5ops.h>
+
+// Params ---------------------------------------------------------------------
+struct Params {
+
+    int         device;
+    int         n_threads;
+    int         n_warmup;
+    int         n_reps;
+    float       alpha;
+    int         pool_size;
+    int         queue_size;
+    int         problem_size;
+
+
+    Params(int argc, char **argv) {
+        device        = 0;
+        n_threads     = 4;
+        n_warmup      = 0;
+        n_reps        = 1;
+        alpha         = 0.1;
+        pool_size     = 3200;
+        queue_size    = 320;
+        problem_size  = 50000;
+        int opt;
+        while((opt = getopt(argc, argv, "hd:t:w:r:a:s:")) >= 0) {
+            switch(opt) {
+            case 'h':
+                usage();
+                exit(0);
+                break;
+            case 'd': device        = atoi(optarg); break;
+            case 't': n_threads     = atoi(optarg); break;
+            case 'w': n_warmup      = atoi(optarg); break;
+            case 'r': n_reps        = atoi(optarg); break;
+            case 'a': alpha         = atof(optarg); break;
+            case 's': problem_size          = atoi(optarg); break;
+            default:
+                fprintf(stderr, "\nUnrecognized option!\n");
+                usage();
+                exit(0);
+            }
+        }
+        if(alpha == 0.0) {
+            // assert(n_gpu_threads > 0 && "Invalid # of device threads!");
+            // assert(n_gpu_blocks > 0 && "Invalid # of device blocks!");
+        } else if(alpha == 1.0) {
+            assert(n_threads > 0 && "Invalid # of host threads!");
+        } else if(alpha > 0.0 && alpha < 1.0) {
+            // assert(n_gpu_threads > 0 && "Invalid # of device threads!");
+            // assert(n_gpu_blocks > 0 && "Invalid # of device blocks!");
+            assert(n_threads > 0 && "Invalid # of host threads!");
+        } else {
+            //assert((n_gpu_threads > 0 && n_gpu_blocks > 0 || n_threads > 0) && "Invalid # of host + device workers!");
+        }
+    }
+    
+    // Need to include parameters relationed to queues
+    void usage() {
+        fprintf(stderr,
+                "\nUsage:  ./micro1 [options]"
+                "\n"
+                "\nGeneral options:"
+                "\n    -h        help"
+                "\n    -d <D>    HIP device ID (default=0)"
+                "\n    -t <T>    # of host threads (default=4)"
+                "\n    -w <W>    # of untimed warmup iterations (default=0)"
+                "\n    -r <R>    # of timed repetition iterations (default=1)"
+                "\n"
+                "\nData-partitioning-specific options:"
+                "\n    -a <A>    fraction of output elements to process on host (default=0.1)"
+                "\n              NOTE: Dynamic partitioning used when <A> is not between 0.0 and 1.0"
+                "\n"
+                "\nBenchmark-specific options:"
+                "\n    -s <S>    number of elements to process (default=50000)"
+                "\n");
+    }
+};
+
+// Initialize Data ------------------------------------------------------------
+void init_data(float* h_in, float* h_out, const Params &p) {
+    for(int i=0; i<p.problem_size; i++)
+    {
+        //fprintf(stderr, "Iteration %d", i);
+        h_in[i] = i+3.14/12;
+        h_out[i] = 0.0;
+    }
+}
+
+// Verification process -------------------------------------------------------
+void verify(float* h_in, float* h_out, int problem_size) {
+    for(int i=0; i<problem_size; i++)
+    {
+        // if(h_in[i]*h_in[i]!=h_out[i]){
+        //     fprintf(stderr, "ERROR: %d,%f,%f\n", i, h_in[i]*h_in[i], h_out[i]);
+        //     break;
+        // }
+        assert(h_in[i]*h_in[i]==h_out[i]);
+    }
+    printf("Verification Passed\n");
+}
+
+// Main -----------------------------------------------------------------------
+int main(int argc, char **argv) {
+
+    const Params p(argc, argv);
+    hipError_t  hipStatus;
+
+    // Allocate
+    int array_size =  (p.problem_size+1) * sizeof(float);
+    // Pointers for the CPU and the GPU
+    float*  h_in  = (float*) malloc(array_size);
+    float*  h_out = (float*) malloc(array_size);
+    // Division of the elements for each device (CPU, GPU)
+    int n_elements_cpu = p.problem_size * p.alpha;
+    int n_elements_gpu = p.problem_size - n_elements_cpu;
+    fprintf(stderr, "GPU elements to process: %d\n", n_elements_gpu);
+    fprintf(stderr, "CPU elements to process: %d\n", n_elements_cpu);
+    
+    // Initialize
+    fprintf(stderr, "Initializing data\n");
+    init_data(h_in, h_out, p);
+    hipDeviceSynchronize(); // assuming that we need it
+
+    // Call to exitSimLoop to begin ROI
+    m5_roi_begin();
+
+    // Loop over main kernel
+    for(int rep = 0; rep < p.n_warmup + p.n_reps; ++rep) {
+
+        // Launch GPU threads
+        // Kernel launch
+        // if(p.n_gpu_blocks > 0) {
+            hipStatus = call_gpukernel(n_elements_gpu, h_in, h_out);
+            if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
+        // }
+
+        // Launch CPU threads
+        std::thread main_thread(run_cpu_threads, n_elements_cpu, n_elements_gpu, p.n_threads, h_in, h_out);
+
+        hipDeviceSynchronize();
+        main_thread.join();
+    }
+
+    // Call to exitSimLoop to end ROI
+    m5_roi_end();
+
+    // Verify answer
+    verify(h_in, h_out, p.problem_size);
+
+    // Free memory
+    free(h_in);
+    free(h_out);
+
+    if(hipStatus != hipSuccess) { fprintf(stderr, "HIP error: %s\n at %s, %d\n", hipGetErrorString(hipStatus), __FILE__, __LINE__); exit(-1); };;
+
+    return 0;
+}
